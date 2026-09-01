@@ -1,0 +1,50 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ---------------------------------------------------------------------
+# 개인정보 — 절대 커밋하지 않는다.
+# GitHub Pages 를 무료 계정에서 쓰려면 저장소가 public 이어야 한다.
+# 명단이 올라가면 60명의 사번과 이름이 인터넷에 그대로 공개된다.
+# 명단은 Supabase 관리자 화면으로만 업로드한다.
+# ---------------------------------------------------------------------
+*.csv
+명단*
+roster*
+
+# 로컬 환경변수 덮어쓰기 (.env 는 공개 값만 담고 있어 커밋한다)
+.env.local
+.env.*.local
+
+# 에이전트 도구 로컬 상태 (세션 기록이 들어갈 수 있다)
+.omc/
+
+# ---------------------------------------------------------------------
+# 내부 문서 — 로컬에만 둔다.
+# 저장소가 public 이라 조직 구성·행사 운영 정보를 인터넷에 남기지 않는다.
+# 앱 빌드에는 필요 없는 파일들이며, 원본은 각자 로컬과 원래 배포처에 있다.
+# (CLAUDE.md 는 개발에 필요하므로 커밋한다)
+# ---------------------------------------------------------------------
+design_handoff_genzlab_workshop_game/
+GenZLab_워크샵_게임시스템_기획서.md

@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+/* =====================================================================
+   디자인 토큰 — README §4.4 의 tailwind.config.js 를 Tailwind v4 형식으로
+   옮긴 것. 값은 하나도 바꾸지 않았다. v3 의 `brand.lime` 은 v4 에서
+   `--color-brand-lime` → 클래스는 양쪽 다 `bg-brand-lime` 으로 동일하다.
+   ===================================================================== */
+@theme {
+  --color-brand: #6A2FF0;
+  --color-brand-lime: #D8FF4F;
+  --color-brand-deep: #26076B;
+  --color-brand-tint: #EFE7FF;
+  --color-brand-on: #4A15C4;
+
+  --color-truth: #2F5CF0;
+  --color-truth-tint: #DFE6FF;
+  --color-truth-on: #1F42B8;
+
+  --color-fake: #F0392B;
+  --color-fake-tint: #FFF5F4;
+  --color-fake-on: #C22B1E;
+
+  --color-success: #12B5A6;
+  --color-success-tint: #E6F7F5;
+  --color-success-on: #0A7D72;
+
+  --color-warn: #F5A623;
+  --color-warn-tint: #FFF2CC;
+  --color-warn-on: #8A5A00;
+
+  /* 4지선다 전용. truth/fake 는 O/X 의미로 고정돼 있어 여기 쓰지 않는다. */
+  --color-option-1: #7B3FF2;
+  --color-option-2: #F5A623;
+  --color-option-3: #12B5A6;
+  --color-option-4: #EF2D8B;
+
+  --color-ink: #17161C;
+  --color-surface: #F4F4F7;
+  --color-muted: #6F6D7A;
+  --color-line: #E0DEE8;
+
+  --font-sans: "IBM Plex Sans KR", system-ui, sans-serif;
+  --font-num: "Space Grotesk", monospace;
+
+  --radius-cta: 30px;
+  --radius-card: 26px;
+  --radius-block: 24px;
+  --radius-frame: 36px;
+
+  --animate-pulse2: pulse2 1.1s infinite;
+  --animate-bob: bob 2.6s ease-in-out infinite;
+}
+
+@keyframes pulse2 { 0%, 100% { opacity: 1 } 50% { opacity: .45 } }
+@keyframes bob    { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-6px) } }
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  /* 모바일에서 당겨서 새로고침 / 고무줄 스크롤 방지 — 게임 중 오작동 원인 */
+  overscroll-behavior: none;
+}
+
+/* 숫자 전용 폰트. 한글은 절대 이 폰트로 조판하지 않는다 (README §4.2) */
+.num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+
+button { font-family: inherit; }
+input  { font-family: inherit; }
