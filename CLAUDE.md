@@ -11,9 +11,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | 코드 | 8단계 전부 구현, `main` 에 푸시 완료 |
 | 배포 | https://ooohje.github.io/genz-lab-2026-q3-workshop/ (GitHub Actions 자동) |
 | DB | `db/00~07` 전부 적용. RPC 38개 |
-| 문서 | `README.md` + `docs/screens/` 실화면 16컷 커밋·푸시 완료 (2026-09-02) |
-| 검증 완료 | 로그인·정규화 · Realtime(실기기 2대) · **게임 1 턴 전환 4턴 전 구간** · **게임 2 출제~채점~리더보드** · 스크린 RPC 3종 · 관리자 22개 PIN 가드 전수 · RLS 잠금 · **브라우저 실화면**(참여자 9컷 · 스크린 5컷 · 관리자 PIN 게이트) |
-| **미검증** | 관리자 탭 3개(대시보드·명단·문항) 내부 화면 · 실기기 리허설 |
+| 문서 | `README.md` + `docs/screens/` 실화면 21컷 커밋·푸시 완료 (2026-09-03). 재촬영 스크립트 `npm run screens` (`scripts/capture-screens.mjs`, Playwright) |
+| 검증 완료 | 로그인·정규화 · Realtime(실기기 2대) · **게임 1 턴 전환 4턴 전 구간** · **게임 2 출제~채점~리더보드** · 스크린 RPC 3종 · 관리자 22개 PIN 가드 전수 · RLS 잠금 · **브라우저 실화면 전 구간**(참여자 10컷 · 스크린 5컷 · 관리자 4컷) |
+| **미검증** | 실기기 리허설 |
 
 ### 2026-09-02 검증에서 잡은 버그 3건 (전부 수정·적용 완료)
 
@@ -43,7 +43,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | `questions` | **8개** | 데모 문항. **실제 문항으로 교체할 것** |
 | `answers` | 412행 | 게임 2 검증·데모 잔여 |
 | `team_g1_state` | 11행 (2개 done) | |
-| `game_state` | `phase`=`final` · `current_question_id`=6 · `revealed`=true | 정리하려면 `lobby` 로 |
+| `game_state` | `phase`=`final` · `current_question_id`=null · `revealed`=false | 2026-09-03 스크린샷 촬영이 게임2 시작을 눌러 qid 가 6→null 로 지워졌다. `final` 화면은 `answers` 로 집계하므로 영향 없음. 정리하려면 `lobby` 로 |
 
 **⚠ 개인정보 1건** — 99조 테스트 계정 중 `demo##` 패턴이 아닌 행 하나가 실명·실사번 형태다. 정리할 때 반드시 함께 지우고, **스크린샷·공개 문서에 이 행이 들어가지 않게 한다**(저장소가 public 이다). 해당 ID 는 이 파일 이전 리비전에 적혀 있었으므로 git 히스토리에도 남아 있다 — 완전히 지우려면 히스토리 재작성이 필요하다.
 
