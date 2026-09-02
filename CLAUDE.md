@@ -8,14 +8,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 | | 상태 |
 |---|---|
-| 코드 | 8단계 전부 구현, `main` 에 푸시 완료 |
-| 배포 | https://ooohje.github.io/genz-lab-2026-q3-workshop/ (GitHub Actions 자동) |
-| DB | `db/00~07` 전부 Supabase 에 적용. RPC 22개 |
-| 검증 완료 | 로그인 · Realtime 동기화(실기기 2대) · RPC 22개 실동작 · 3T1F 저장/셔플/입력검증 · RLS 잠금(공격 시도로 실증) |
+| 코드 | 8단계 전부 구현. 단 **`main` 이 빌드되지 않는다** — 아래 참조 |
+| 배포 | https://ooohje.github.io/genz-lab-2026-q3-workshop/ (GitHub Actions 자동). **빌드 실패로 최신 커밋은 배포되지 않았다** |
+| DB | `db/00~07` 전부 Supabase 에 적용. RPC 37개 |
+| 검증 완료 | 로그인 · Realtime 동기화(실기기 2대) · RPC 실동작 · 3T1F 저장/셔플/입력검증 · RLS 잠금(공격 시도로 실증) |
 | **미검증** | **게임 1 턴 전환 흐름** · 게임 2 출제~채점 흐름 · 스크린 B2~B5 실데이터 |
+
+### 🚨 0순위 — `src/views/admin/Roster.jsx` 가 없다
+
+`AdminView.jsx:6` 이 `import Roster from './Roster'` 를 하는데 그 파일이 저장소에 없다. **한 번도 커밋된 적이 없다**(`git log --all -- src/views/admin/Roster.jsx` 가 비어 있다). 커밋 `2966595` 의 메시지에는 "C3 명단·조 편성" 을 만들었다고 적혀 있지만 실제로는 빠졌다.
+
+결과: `npm run build` 가 `Module not found` 로 죽고, 따라서 GitHub Actions 배포도 그 커밋 이후로 전부 실패했을 것이다. 배포 URL 에 떠 있는 것은 그 이전 버전이다.
+
+`.gitignore` 의 `roster*` 때문은 아니다 — git 패턴은 대소문자를 구분하므로 `Roster.jsx` 는 무시 대상이 아니다(`git check-ignore -v` 로 확인함). 다만 새로 만들 때 **소문자 `roster.jsx` 로 만들면 진짜로 무시된다.** 파일명을 `Roster.jsx` 로 유지할 것.
+
+C3 이 호출해야 할 RPC 는 이미 DB 에 다 있다(`db/07_rpc_admin.sql`): `admin_roster` `admin_upsert_team` `admin_delete_team` `admin_assign` `admin_set_active` `admin_delete_participant` `admin_reset_participant` `admin_upload_roster`. 이 8개는 **현재 프론트 어디에서도 호출되지 않는다** — 즉 Roster.jsx 만 복구하면 된다. 화면 규격은 README §C3 을 본다.
+
+명단 CSV 업로드가 이 화면에 있으므로, **이게 없으면 실제 명단을 넣을 수 없고 조도 만들 수 없다.** 게임 1 을 못 돌려본 근본 원인이기도 하다.
 
 ### 다음에 할 일 (우선순위 순)
 
+0. **`Roster.jsx` 복구** — 위 참조. 빌드가 되살아나야 나머지가 의미 있다.
 1. **게임 1 턴 전환 검증** — 가장 큰 리스크. 조가 없어서 아직 못 돌려봤다.
    `admin_start_game1` → `get_g1_view` → `cast_vote` → 전원 투표 시 자동 리빌 → 5초 뒤 다음 발표자.
    Supabase MCP 가 연결돼 있으므로 PIN 없이 DB 를 직접 다뤄 검증할 수 있다.
@@ -88,6 +101,8 @@ npm run lint     # oxlint
 
 테스트 러너는 아직 없다. 검증은 브라우저에서 직접 하고, DB 는 `db/03_verify.sql` 로 확인한다.
 
+**`npm run lint` 를 통과했다고 빌드가 된다는 뜻이 아니다.** oxlint 는 모듈 해석을 하지 않아 존재하지 않는 파일을 import 해도 조용히 통과한다(실제로 `Roster.jsx` 누락을 못 잡았다). 푸시 전에는 **반드시 `npm run build` 를 돌린다** — GitHub Actions 가 하는 일이 그것뿐이라, 여기서 죽으면 배포가 통째로 안 나간다.
+
 `npm run dev` 의 URL 에 **base 경로가 붙는다**(`/genz-lab-2026-q3-workshop/`). 루트로 들어가면 화면이 안 뜬다.
 
 배포 URL이 `https://{계정}.github.io/genz-lab-2026-q3-workshop/` 형태의 하위 경로이므로 Vite `base`를 그 경로로 맞춰야 한다. 기본값 `/`로 두면 GitHub Pages에서 에셋 404가 난다.
@@ -121,6 +136,8 @@ grep -rn "Gen Z Lab" src/
 - **4지선다에는 `truth`/`fake`를 쓰지 않는다.** O/X 의미와 혼동되므로 `option-1…4` 별도 4색을 쓴다.
 
 전체 토큰과 `tailwind.config.js` 스니펫은 README §4에 확정값으로 있다. 색·사이즈·radius를 임의로 정하지 말고 그대로 옮긴다.
+
+다만 **이 저장소는 Tailwind v4 라 `tailwind.config.js` 가 없고, 만들어서도 안 된다.** 토큰은 `src/index.css` 의 `@theme` 블록에 이미 옮겨져 있다(`--color-truth` → `bg-truth`). 플러그인은 `@tailwindcss/vite` 로 `vite.config.js` 에 붙어 있다. README 의 v3 스니펫을 보고 config 파일을 새로 만들면 v4 가 무시하거나 충돌한다 — 값을 바꿀 일이 있으면 `index.css` 를 고친다.
 
 ### 3. 게임 1과 게임 2의 제출 규칙이 정반대다
 
@@ -206,6 +223,19 @@ lobby → game1 → game1_reveal → game2_wait → game2_question
 
 현재 RPC 는 로그인(`join_session`)과 PIN 검증뿐이다. 3T1F 저장·조회, 투표, 리빌, 답안 제출·채점, 리더보드 집계는 **해당 구현 단계에 도달했을 때** 작성한다. 한꺼번에 만들면 검증할 방법이 없다.
 
+### RPC 를 새로 쓸 때 지키는 관례
+
+`db/04~07` 의 37개가 전부 같은 모양이다. 하나만 어긋나도 보안 구멍이거나 로그인 튕김이 된다.
+
+- `security definer` + `set search_path = public`. RLS 로 잠근 테이블(`statements` `questions` `votes_3t1f` `answers` `app_config`)에 닿는 유일한 통로다.
+- `pgcrypto` 만 예외 — `extensions.crypt(...)` 처럼 스키마를 명시한다(위 "DB 구축" 참조).
+- 참가자를 받는 함수는 첫 줄에서 `lower(trim(coalesce(p_knox_id, '')))`.
+- 관리자 함수는 이름이 `admin_` 으로 시작하고, 첫 인자가 `p_pin`, 첫 문장이 `if not admin_verify_pin(p_pin) then raise exception 'BAD_PIN'; end if;` 다. 프론트는 `Dashboard.jsx` 의 `call(fn, args)` 헬퍼가 `p_pin` 을 자동으로 얹는다.
+- 파일 끝에 `grant execute on function ... to anon, authenticated;` 를 빼먹지 않는다. 빼면 함수는 만들어지지만 브라우저에서 권한 오류가 난다.
+- 오류는 `raise exception '대문자_스네이크'` 로 던지고 프론트가 그 문자열로 분기한다(`NOT_PREREGISTERED` `ALREADY_ANSWERED` `TOO_LATE` `BAD_PIN` 등). 사람이 읽을 문장을 예외에 담지 않는다.
+
+세션 저장 위치도 두 군데로 갈려 있다: 참여자는 `localStorage['genzlab.session']`(새로고침 후에도 유지), 관리자 PIN 은 `sessionStorage['genzlab.adminpin']`(탭 닫으면 사라짐). 바꾸지 말 것 — 참여자 폰은 세션이 날아가면 재로그인해야 하고, 관리자 PIN 은 남으면 안 된다.
+
 ## 구현 순서
 
 README §12의 8단계를 순서대로 따른다. 각 단계가 독립적으로 테스트 가능하도록 잘라둔 것이므로 **건너뛰지 않는다.**
@@ -229,10 +259,11 @@ src/
   views/participant/           Login(A1) NameEntry(A2) TeamWait(A3) StatementForm(A4/A5)
                                Lobby(A6) LookUp game1/ game2/
   views/screen/ScreenView.jsx  B1~B5 한 파일
-  views/admin/                 AdminView(C1) Dashboard(C2) Roster(C3) Questions(C4)
+  views/admin/                 AdminView(C1) Dashboard(C2) Questions(C4)
+                               ※ Roster(C3) 는 import 만 있고 파일이 없다 → 빌드 실패
 ```
 
-**db/ 의 SQL 00~07 은 2026-09-02 에 전부 적용 완료했다.** RPC 22개가 실동작 검증까지 끝났다(문장 저장·셔플·입력검증·집계·PIN 가드). 미검증으로 남은 것은 **게임 1 턴 전환 흐름**(발표 순서 배정 → 투표 → 자동 리빌 → 다음 발표자)이다. 조가 하나도 없어서 아직 돌려보지 못했다.
+**db/ 의 SQL 00~07 은 2026-09-02 에 전부 적용 완료했다.** RPC 는 총 37개다(`grep -c '^create or replace function' db/*.sql`). 이 중 프론트가 실제로 호출하는 것은 19개이고, 나머지 18개는 대부분 Roster(C3) 용이다. 핵심 경로는 실동작 검증이 끝났다(문장 저장·셔플·입력검증·집계·PIN 가드). 미검증으로 남은 것은 **게임 1 턴 전환 흐름**(발표 순서 배정 → 투표 → 자동 리빌 → 다음 발표자)이다. 조가 하나도 없어서 아직 돌려보지 못했다.
 
 Supabase MCP 서버가 `.mcp.json` 에 연결돼 있다(2026-09-02). 세션 시작 시 도구가 로드되므로, 연결 직후 세션에서는 안 보이고 새 세션부터 쓸 수 있다.
 
