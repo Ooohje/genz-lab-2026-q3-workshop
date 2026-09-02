@@ -7,12 +7,12 @@ import { PHASE_LABEL } from '../../lib/phases'
  * 3~5단계에서 각 phase 의 실제 화면(A3~A17)으로 하나씩 교체된다.
  * 지금은 "관리자가 phase 를 바꾸면 모든 폰이 따라 바뀌는가"만 검증한다.
  */
-export default function PhaseStub({ participant, gameState, status, onLogout }) {
+export default function PhaseStub({ participant, teamName, gameState, status, onLogout }) {
   const phase = gameState?.phase ?? '…'
 
   return (
     <div className="flex h-full flex-col bg-surface">
-      <TopBar participant={participant} />
+      <TopBar participant={participant} teamName={teamName} />
 
       <div className="flex flex-1 flex-col items-center justify-center gap-[20px] p-[24px] text-center">
         <span
