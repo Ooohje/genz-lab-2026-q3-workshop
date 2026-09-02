@@ -9,6 +9,9 @@ import StatementForm from './StatementForm'
 import TeamWait from './TeamWait'
 import Lobby from './Lobby'
 import Game1 from './game1/Game1'
+import Game2 from './game2/Game2'
+import Final from './game2/Final'
+import LookUp from './LookUp'
 import PhaseStub from './PhaseStub'
 
 export default function ParticipantApp() {
@@ -97,7 +100,20 @@ export default function ParticipantApp() {
     return <Game1 participant={participant} teamName={teamName} />
   }
 
-  // 게임 2 화면은 5단계에서 붙는다.
+  // --- 게임 2 ---------------------------------------------------------
+  if (phase === 'game2_wait' || phase === 'game2_question' || phase === 'game2_answer') {
+    return <Game2 participant={participant} teamName={teamName} gameState={gameState} />
+  }
+
+  // 중간 리더보드는 스크린(빔프로젝터)에 띄운다. 폰은 시선을 앞으로 보낸다.
+  if (phase === 'leaderboard') {
+    return <LookUp participant={participant} teamName={teamName} />
+  }
+
+  if (phase === 'final') {
+    return <Final participant={participant} />
+  }
+
   return (
     <PhaseStub
       participant={participant}
