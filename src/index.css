@@ -54,6 +54,12 @@
 @keyframes pulse2 { 0%, 100% { opacity: 1 } 50% { opacity: .45 } }
 @keyframes bob    { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-6px) } }
 
+/* 라이트 전용. index.html 의 color-scheme meta 와 짝이다.
+   이 선언이 없으면 브라우저의 강제 다크 모드가 색을 반전시킨다.
+   게임 2 화면은 "다크 모드"가 아니라 의도적으로 어두운 디자인이므로
+   반전되면 오히려 밝아져 완전히 망가진다. */
+:root { color-scheme: light; }
+
 html, body, #root { height: 100%; }
 
 body {
