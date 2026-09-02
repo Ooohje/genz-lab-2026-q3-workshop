@@ -168,25 +168,31 @@ README §12의 8단계를 순서대로 따른다. 각 단계가 독립적으로 
 
 **단계마다 폰 2대로 실제 동기화를 눈으로 확인한다.** Realtime은 로컬 단일 브라우저에서는 잘 되는 것처럼 보인다.
 
-### 구현 현황 (2026-09-01)
+### 구현 현황 (2026-09-02)
 
-1·2단계 완료. 3단계(3T1F 작성)부터가 다음 차례다.
+**8단계 전부 구현 완료.** 남은 것은 내용물(문항·명단·조 이름)과 실기기 검증이다.
 
 ```
+db/                 00 초기화 · 01 스키마 · 02 RLS/로그인 · 03 검증
+                    04 3T1F · 05 게임1 · 06 게임2 · 07 스크린+관리자
 src/
   App.jsx                      해시 라우터 (#/ · #/screen · #/admin)
-  lib/supabase.js              클라이언트. DEV 에서 window.__sb 로 노출
-  lib/session.js               localStorage 세션 + Knox ID 소문자 정규화
-  lib/phases.js                phase 값과 한글 라벨
-  hooks/useGameState.js        game_state 구독 — 동기화의 심장
-  hooks/useParticipant.js      본인 participants 행 구독 (조 이동 즉시 반영)
-  components/TopBar.jsx        전 화면 공통 상단 바 (README §5)
-  views/participant/           Login(A1) · NameEntry(A2) · PhaseStub(임시) · ParticipantApp
-  views/ScreenView.jsx         스크린 뷰 자리 (6단계에서 B1~B5)
-  views/AdminView.jsx          관리자 뷰 자리 (7단계에서 C1~C4)
+  lib/                         supabase · session · phases
+  hooks/                       useGameState · useParticipant · useMyGame · useG1 · useQuestion
+  components/                  TopBar · Cta · BottomBar · Timer · NoticeBanner · ErrorBoundary
+  views/participant/           Login(A1) NameEntry(A2) TeamWait(A3) StatementForm(A4/A5)
+                               Lobby(A6) LookUp game1/ game2/
+  views/screen/ScreenView.jsx  B1~B5 한 파일
+  views/admin/                 AdminView(C1) Dashboard(C2) Roster(C3) Questions(C4)
 ```
 
-`PhaseStub` 은 phase 별 실제 화면(A3~A17)이 붙으면 사라질 임시 화면이다.
+`db/` 의 SQL 은 **번호 순서대로** 실행한다. 04~07 은 RPC 뿐이라 여러 번 돌려도 안전하다(`create or replace`). 01·02 는 테이블을 만드므로 재실행하려면 `00_reset.sql` 이 먼저다.
+
+스크린 뷰는 `#/screen?phase=lobby` 처럼 phase 를 강제해 DB 를 건드리지 않고 각 화면을 미리 볼 수 있다. 리허설 전 빔프로젝터 점검에 쓴다.
+
+### 게임 1 턴 전환은 `get_g1_view` 안에서 판정한다
+
+발표자 폰이 죽어도 다른 조원의 폴링이 대신 턴을 넘겨주게 하려는 것이다. 조회 함수에 부수효과가 있는 게 어색해 보여도 걷어내지 말 것 — 걷어내면 한 명 때문에 조 전체가 멈춘다. 행사장에서 가장 흔한 사고다.
 
 ### Realtime 만 믿지 않는다 — 폴링 안전망이 필수
 
