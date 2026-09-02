@@ -24,6 +24,12 @@
 <img src="docs/screens/02-lobby.png" width="240" alt="로비 대기 화면">
 </p>
 
+명단에 없는 Knox ID로 들어오면 이름을 입력하고 **조 배정 대기** 화면에서 기다린다. 진행자가 조를 배정하는 순간 Realtime으로 다음 화면으로 넘어간다 — 새로고침할 필요가 없고, 기다리는 동안 문장을 먼저 써둘 수 있다.
+
+<p>
+<img src="docs/screens/A3-team-wait.png" width="240" alt="조 배정 대기 화면">
+</p>
+
 빔프로젝터에는 QR과 함께 실시간 집계가 뜬다. 진행자는 "몇 명 들어왔고 몇 명이 문장을 다 썼는지"만 보면 된다.
 
 <img src="docs/screens/B1-screen-lobby.png" width="760" alt="스크린 뷰 — 입장 대기">
@@ -64,6 +70,12 @@
 | <img src="docs/screens/06-g2-ox.png" width="260" alt="게임 2 O/X 문항"> | <img src="docs/screens/07-g2-mc.png" width="260" alt="게임 2 4지선다 문항"> |
 | O는 파랑, X는 빨강. 게임 1의 진실/거짓과 같은 의미다. | 4지선다는 **일부러 다른 4색**을 쓴다. 파랑·빨강을 재사용하면 O/X로 착각한다. |
 
+문제와 문제 사이에는 이 화면으로 돌아간다. 진행자가 다음 문제를 여는 순간 전 단말이 동시에 넘어가므로, 먼저 푼 사람이 유리해지지 않는다.
+
+<p>
+<img src="docs/screens/09-g2-wait.png" width="240" alt="게임 2 문제 대기 화면">
+</p>
+
 정답이 공개되면 점수 계산 내역과 응답 분포가 함께 나온다. 빨리 맞힐수록 스피드 보너스가 붙는다.
 
 | 참여자 | 스크린 |
@@ -96,7 +108,17 @@
 
 <img src="docs/screens/C1-admin-pin.png" width="620" alt="관리자 PIN 화면">
 
-여기서 명단 업로드, 조 편성·이동, 문항 관리, 단계 전환, 공지 배너, 개인정보 삭제를 한다.
+대시보드 하나로 행사 전체를 몬다. 단계 전환, 조별 게임 1 진행률, 배정 대기자, 공지 배너가 한 화면에 있다. 진행이 늦은 조는 빨간 막대로 드러나고 `강제공개`로 그 조만 다음 발표자로 넘길 수 있다. 오른쪽 아래 "위험 구역"에 리허설 초기화와 행사 후 개인정보 삭제가 있다.
+
+<img src="docs/screens/C2-admin-dashboard.png" width="760" alt="관리자 대시보드">
+
+명단은 CSV로 올린다(`knox_id,name,team_no`). 조 이동은 사람마다 붙은 드롭다운으로 하고, 바꾸는 즉시 그 사람 폰이 새 조로 넘어간다. `미배정`을 고르면 조에서 빼낸다. 조 자체도 추가·이름변경·삭제가 되므로 조 수와 조당 인원은 고정이 아니다.
+
+<img src="docs/screens/C3-admin-roster.png" width="760" alt="관리자 명단 · 조 편성">
+
+문항도 여기서 만든다. O/X와 4지선다는 입력 폼이 아예 다르고, 정답과 해설은 관리자만 본다 — 참여자 쪽은 RLS로 막혀 있어 정답 공개 전까지 응답에 실리지도 않는다.
+
+<img src="docs/screens/C4-admin-questions.png" width="760" alt="관리자 문항 관리">
 
 ---
 
@@ -146,7 +168,10 @@ npm run dev      # http://localhost:5173/genz-lab-2026-q3-workshop/
 npm run build
 npm run preview
 npm run lint
+npm run screens   # 위 화면들을 다시 캡처 (dev 서버가 떠 있어야 한다)
 ```
+
+`npm run screens`는 창을 하나 띄우고 관리자 PIN 입력을 기다린 뒤, 이 문서의 화면들을 `docs/screens/`에 다시 찍는다. 캡처를 위해 잠깐 바꾼 진행 단계와 조 배정은 끝나면 되돌린다. 배율(2배)을 바꾸면 새로 찍은 컷만 흐릿해지므로 스크립트의 `SCALE`은 건드리지 않는다.
 
 `npm run dev` URL에 **base 경로가 붙는다.** 루트(`/`)로 들어가면 화면이 안 뜬다.
 
