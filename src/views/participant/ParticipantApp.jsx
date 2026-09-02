@@ -21,7 +21,9 @@ export default function ParticipantApp() {
   const [pendingKnoxId, setPendingKnoxId] = useState(null)
   const [editingStatements, setEditingStatements] = useState(false)
 
-  const { participant, setParticipant } = useParticipant(booted)
+  // 관리자가 내 행을 지웠다면(오타 난 Knox ID 정리 등) 세션을 버리고 로그인부터
+  // 다시 시작한다. 그대로 두면 이후 동작이 전부 NOT_A_PARTICIPANT 로 실패한다.
+  const { participant, setParticipant } = useParticipant(booted, { onGone: handleLogout })
   const { gameState, status } = useGameState()
   const { statements, roster, teamName, refresh } = useMyGame(participant)
 
