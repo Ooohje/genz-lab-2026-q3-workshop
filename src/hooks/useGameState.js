@@ -65,15 +65,33 @@ export function useGameState() {
     const resync = () => {
       if (document.visibilityState !== 'visible') return
       refetchRef.current()
-      // 채널이 살아 있으면 굳이 끊지 않는다. 죽었을 때만 새로 연결한다.
-      if (!channel || channel.state !== 'joined') connect()
+      // channel.state 가 'joined' 라고 해서 소켓이 살아 있다는 보장이 없다.
+      // 클라이언트가 아직 끊김을 눈치채지 못한 상태일 수 있으므로 무조건 새로 붙는다.
+      connect()
     }
     document.addEventListener('visibilitychange', resync)
     window.addEventListener('online', resync)
     window.addEventListener('focus', resync)
 
+    // 폴링 안전망.
+    //
+    // 폰을 켜둔 채로 소켓만 조용히 죽으면 visibilitychange·focus·online 중
+    // 아무것도 발생하지 않는다. LTE 의 캐리어 NAT 타임아웃이나 순간 끊김에서
+    // 실제로 일어나며, 그러면 참여자는 멈춘 화면을 보며 계속 기다리게 된다.
+    // 60명이 30분간 붙어 있으면 누군가에게는 반드시 생긴다.
+    //
+    // Realtime 은 빠른 경로(1초 이내)로 그대로 두고, 이 폴링은 그게 죽었을 때
+    // 최대 POLL_MS 안에 따라잡게 하는 보험이다. game_state 는 단일 행이라
+    // 60명이 5초마다 조회해도 초당 12건, 무료 티어에서 문제되지 않는다.
+    const POLL_MS = 5000
+    const poll = setInterval(() => {
+      if (document.visibilityState !== 'visible') return
+      refetchRef.current()
+    }, POLL_MS)
+
     return () => {
       cancelled = true
+      clearInterval(poll)
       document.removeEventListener('visibilitychange', resync)
       window.removeEventListener('online', resync)
       window.removeEventListener('focus', resync)

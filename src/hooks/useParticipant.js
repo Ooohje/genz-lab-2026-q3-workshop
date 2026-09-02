@@ -48,17 +48,27 @@ export function useParticipant(initial) {
     }
     connect()
 
-    const resync = () => {
-      if (document.visibilityState !== 'visible') return
+    const pull = () => {
       supabase.from('participants').select('*').eq('knox_id', knoxId).single()
         .then(({ data }) => { if (!cancelled) applyRef.current(data) })
-      if (!channel || channel.state !== 'joined') connect()
+    }
+    const resync = () => {
+      if (document.visibilityState !== 'visible') return
+      pull()
+      connect()
     }
     document.addEventListener('visibilitychange', resync)
     window.addEventListener('online', resync)
 
+    // useGameState 와 같은 이유의 폴링 안전망. 조 배정은 phase 전환만큼
+    // 급하지 않아 주기를 길게 잡는다.
+    const poll = setInterval(() => {
+      if (document.visibilityState === 'visible') pull()
+    }, 15000)
+
     return () => {
       cancelled = true
+      clearInterval(poll)
       document.removeEventListener('visibilitychange', resync)
       window.removeEventListener('online', resync)
       if (channel) supabase.removeChannel(channel)
