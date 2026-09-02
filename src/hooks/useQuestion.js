@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { noteServerTime, serverNow } from '../lib/clock'
 
 /**
  * 현재 문항 + 내 제출 상태.
@@ -16,7 +17,10 @@ export function useQuestion(knoxId, gameState) {
     busy.current = true
     try {
       const { data } = await supabase.rpc('get_current_question', { p_knox_id: knoxId })
-      if (data) setQ(data)
+      if (data) {
+        noteServerTime(data.server_now)
+        setQ(data)
+      }
     } finally {
       busy.current = false
     }
@@ -39,11 +43,14 @@ export function useQuestion(knoxId, gameState) {
 /**
  * 서버가 준 시작 시각 기준 남은 초.
  * 전 단말이 같은 마감시각을 공유하므로 늦게 들어온 사람도 형평성이 유지된다.
+ *
+ * 뺄셈도 서버 기준 시계(serverNow)로 한다. Date.now() 를 쓰면 폰 시계가
+ * 어긋난 만큼 남은 시간이 통째로 틀어진다. lib/clock.js 참고.
  */
 export function useRemaining(startedAt, limitSec) {
-  const [now, setNow] = useState(() => Date.now())
+  const [now, setNow] = useState(() => serverNow())
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 200)
+    const id = setInterval(() => setNow(serverNow()), 200)
     return () => clearInterval(id)
   }, [])
   if (!startedAt || !limitSec) return 0

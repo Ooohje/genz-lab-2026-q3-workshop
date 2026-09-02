@@ -77,10 +77,14 @@ declare
   v_guard   int := 0;
 begin
   select team_no into v_team from participants where knox_id = v_knox;
-  if v_team is null then return jsonb_build_object('state', 'no_team'); end if;
+  if v_team is null then
+    return jsonb_build_object('state', 'no_team', 'server_now', now());
+  end if;
 
   select * into st from team_g1_state where team_no = v_team for update;
-  if not found then return jsonb_build_object('state', 'not_started'); end if;
+  if not found then
+    return jsonb_build_object('state', 'not_started', 'server_now', now());
+  end if;
 
   -- 늦게 작성한 사람을 발표 순서 뒤에 합류시킨다 (기획서 §4.3).
   select jsonb_agg(x.knox_id) into v_new
@@ -110,6 +114,7 @@ begin
     update team_g1_state set phase = 'done' where team_no = v_team and phase <> 'done';
     return jsonb_build_object(
       'state', 'done',
+      'server_now', now(),
       'team_no', v_team,
       'roster', (select jsonb_agg(jsonb_build_object('knox_id', p.knox_id, 'name', p.name)
                                   order by p.name)
@@ -157,13 +162,15 @@ begin
        set current_idx = st.current_idx, phase = st.phase,
            turn_started_at = now(), phase_started_at = now()
      where team_no = v_team;
-    return jsonb_build_object('state', 'advancing');
+    return jsonb_build_object('state', 'advancing', 'server_now', now());
   end if;
 
   v_reveal := st.phase in ('reveal_person', 'done');
 
   return jsonb_build_object(
     'state',            'ok',
+    -- 단말이 자기 시계 대신 이 값으로 경과 시간을 계산한다(src/lib/clock.js).
+    'server_now',       now(),
     'team_no',          v_team,
     'turn_phase',       st.phase,
     'current_idx',      st.current_idx,

@@ -3,6 +3,7 @@ import QRCode from 'qrcode'
 import { supabase } from '../../lib/supabase'
 import { useGameState } from '../../hooks/useGameState'
 import { useRemaining } from '../../hooks/useQuestion'
+import { noteServerTime } from '../../lib/clock'
 import Timer from '../../components/Timer'
 
 /**
@@ -175,7 +176,12 @@ function QuestionBoard({ gameState }) {
   const remaining = useRemaining(q?.started_at, q?.time_limit_sec)
 
   useEffect(() => {
-    const pull = () => supabase.rpc('get_screen_question').then(({ data }) => data && setQ(data))
+    const pull = () =>
+      supabase.rpc('get_screen_question').then(({ data }) => {
+        if (!data) return
+        noteServerTime(data.server_now)
+        setQ(data)
+      })
     pull()
     const id = setInterval(pull, 1000)
     return () => clearInterval(id)

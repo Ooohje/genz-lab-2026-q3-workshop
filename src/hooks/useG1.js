@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { noteServerTime, serverNow } from '../lib/clock'
 
 /**
  * 게임 1 상태. get_g1_view 하나로 화면에 필요한 모든 것을 받는다.
@@ -20,8 +21,10 @@ export function useG1(knoxId, { enabled = true } = {}) {
       // 'advancing' 은 서버가 방금 턴을 넘겼다는 뜻이다. 곧바로 다시 읽는다.
       if (data?.state === 'advancing') {
         const { data: again } = await supabase.rpc('get_g1_view', { p_knox_id: knoxId })
+        noteServerTime((again ?? data)?.server_now)
         setView(again ?? data)
       } else if (data) {
+        noteServerTime(data.server_now)
         setView(data)
       }
     } finally {
@@ -50,9 +53,9 @@ export function useG1(knoxId, { enabled = true } = {}) {
 
 /** 서버가 준 시각을 기준으로 경과 초를 센다. 클라이언트 시계로 카운트하지 않는다. */
 export function useElapsed(startedAt) {
-  const [now, setNow] = useState(() => Date.now())
+  const [now, setNow] = useState(() => serverNow())
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 500)
+    const id = setInterval(() => setNow(serverNow()), 500)
     return () => clearInterval(id)
   }, [])
   if (!startedAt) return 0

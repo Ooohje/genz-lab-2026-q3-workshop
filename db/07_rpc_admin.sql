@@ -43,6 +43,8 @@ begin
 
   return jsonb_build_object(
     'state', 'ok',
+    -- 스크린도 자기 시계 대신 이 값으로 남은 시간을 계산한다(src/lib/clock.js).
+    'server_now', now(),
     'id', q.id, 'ord', q.ord, 'type', q.type, 'body', q.body,
     'image_url', q.image_url, 'options', q.options,
     'time_limit_sec', q.time_limit_sec, 'started_at', gs.question_started_at,

@@ -85,6 +85,8 @@ begin
 
   return jsonb_build_object(
     'state',          'ok',
+    -- 단말이 자기 시계 대신 이 값으로 남은 시간을 계산한다(src/lib/clock.js).
+    'server_now',     now(),
     'id',             q.id,
     'ord',            q.ord,
     'total',          (select count(*) from questions),
