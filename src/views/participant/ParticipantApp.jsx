@@ -12,9 +12,11 @@ import Game1 from './game1/Game1'
 import Game2 from './game2/Game2'
 import Final from './game2/Final'
 import LookUp from './LookUp'
+import NoticeBanner from '../../components/NoticeBanner'
 import PhaseStub from './PhaseStub'
 
 export default function ParticipantApp() {
+  // 아래 body() 가 고른 화면 위에 공지 배너를 얹는다.
   const [booted] = useState(() => loadSession())
   const [pendingKnoxId, setPendingKnoxId] = useState(null)
   const [editingStatements, setEditingStatements] = useState(false)
@@ -22,6 +24,13 @@ export default function ParticipantApp() {
   const { participant, setParticipant } = useParticipant(booted)
   const { gameState, status } = useGameState()
   const { statements, roster, teamName, refresh } = useMyGame(participant)
+
+  const wrap = (node) => (
+    <div className="flex h-full flex-col">
+      <NoticeBanner notice={gameState?.notice} />
+      <div className="min-h-0 flex-1">{node}</div>
+    </div>
+  )
 
   function handleJoined(row) {
     saveSession(row)
@@ -37,15 +46,15 @@ export default function ParticipantApp() {
   // --- 로그인 전 ------------------------------------------------------
   if (!participant) {
     if (pendingKnoxId) {
-      return (
+      return wrap(
         <NameEntry
           knoxId={pendingKnoxId}
           onJoined={handleJoined}
           onBack={() => setPendingKnoxId(null)}
-        />
+        />,
       )
     }
-    return <Login onJoined={handleJoined} onNeedName={setPendingKnoxId} />
+    return wrap(<Login onJoined={handleJoined} onNeedName={setPendingKnoxId} />)
   }
 
   // statements 가 null 이면 아직 서버 응답 전이다. 깜빡임 방지.
@@ -59,7 +68,7 @@ export default function ParticipantApp() {
   // --- 3T1F 작성 ------------------------------------------------------
   // 도착 직후 바로 작성하게 한다(기획서 §4.1). 조 배정 전에도 쓸 수 있다.
   if (!hasStatements || editingStatements) {
-    return (
+    return wrap(
       <StatementForm
         participant={participant}
         teamName={teamName}
@@ -68,50 +77,50 @@ export default function ParticipantApp() {
           await refresh()
           setEditingStatements(false)
         }}
-      />
+      />,
     )
   }
 
   // --- 조 배정 대기 ---------------------------------------------------
   if (participant.team_no == null) {
-    return (
+    return wrap(
       <TeamWait
         participant={participant}
         hasStatements={hasStatements}
         onWriteStatements={() => setEditingStatements(true)}
-      />
+      />,
     )
   }
 
   // --- 로비 -----------------------------------------------------------
   if (phase === 'lobby') {
-    return (
+    return wrap(
       <Lobby
         participant={participant}
         teamName={teamName}
         roster={roster}
         onEditStatements={() => setEditingStatements(true)}
-      />
+      />,
     )
   }
 
   // --- 게임 1 ---------------------------------------------------------
   if (phase === 'game1' || phase === 'game1_reveal') {
-    return <Game1 participant={participant} teamName={teamName} />
+    return wrap(<Game1 participant={participant} teamName={teamName} />)
   }
 
   // --- 게임 2 ---------------------------------------------------------
   if (phase === 'game2_wait' || phase === 'game2_question' || phase === 'game2_answer') {
-    return <Game2 participant={participant} teamName={teamName} gameState={gameState} />
+    return wrap(<Game2 participant={participant} teamName={teamName} gameState={gameState} />)
   }
 
   // 중간 리더보드는 스크린(빔프로젝터)에 띄운다. 폰은 시선을 앞으로 보낸다.
   if (phase === 'leaderboard') {
-    return <LookUp participant={participant} teamName={teamName} />
+    return wrap(<LookUp participant={participant} teamName={teamName} />)
   }
 
   if (phase === 'final') {
-    return <Final participant={participant} />
+    return wrap(<Final participant={participant} />)
   }
 
   return (

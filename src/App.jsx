@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import ParticipantApp from './views/participant/ParticipantApp'
-import ScreenView from './views/ScreenView'
-import AdminView from './views/AdminView'
+import ScreenView from './views/screen/ScreenView'
+import AdminView from './views/admin/AdminView'
 
 /**
  * 해시 라우터.
