@@ -2,28 +2,66 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 다음 세션 시작점 (2026-09-02 기준)
+
+**8단계 전부 구현 완료. 배포·DB 적용까지 끝났다. 남은 것은 검증과 내용물이다.**
+
+| | 상태 |
+|---|---|
+| 코드 | 8단계 전부 구현, `main` 에 푸시 완료 |
+| 배포 | https://ooohje.github.io/genz-lab-2026-q3-workshop/ (GitHub Actions 자동) |
+| DB | `db/00~07` 전부 Supabase 에 적용. RPC 22개 |
+| 검증 완료 | 로그인 · Realtime 동기화(실기기 2대) · RPC 22개 실동작 · 3T1F 저장/셔플/입력검증 · RLS 잠금(공격 시도로 실증) |
+| **미검증** | **게임 1 턴 전환 흐름** · 게임 2 출제~채점 흐름 · 스크린 B2~B5 실데이터 |
+
+### 다음에 할 일 (우선순위 순)
+
+1. **게임 1 턴 전환 검증** — 가장 큰 리스크. 조가 없어서 아직 못 돌려봤다.
+   `admin_start_game1` → `get_g1_view` → `cast_vote` → 전원 투표 시 자동 리빌 → 5초 뒤 다음 발표자.
+   Supabase MCP 가 연결돼 있으므로 PIN 없이 DB 를 직접 다뤄 검증할 수 있다.
+2. **게임 2 흐름 검증** — `admin_open_question` → `submit_answer` 채점(스피드 보너스) → `admin_reveal_answer` → 리더보드.
+3. 사용자에게 **문항 8개 · 명단 CSV · 조 이름 10개** 를 받아 입력. 이게 없으면 리허설을 못 한다.
+4. 리허설(D-3~D-1) 후 테스트 데이터 정리.
+
+### 현재 DB 상태
+
+- `participants` 테스트 7행 (`js60.oh` `skeka` `jj60.` `ㅇㅇ` `ii` `ㄷㄷ` `test.claude`) — 전원 조 미배정
+- `teams` **0개** ← 이것 때문에 게임 1 을 못 돌려본다
+- `game_state.phase` = `game1` (테스트하다 둔 상태. 정리하려면 `lobby` 로)
+- `questions` 0개
+- 실제 명단 업로드 전에 테스트 7행을 지울 것
+
+### 파괴적 작업은 먼저 물어본다
+
+MCP 로 DB 를 직접 바꿀 수 있다. 스키마 변경, 데이터 삭제(`admin_reset_game`, `admin_purge_personal_data`, `db/00_reset.sql`)는 **실행 전에 사용자에게 확인**한다.
+
+---
+
 ## 이 저장소의 현재 상태
 
-**코드베이스가 아직 없다.** 이 디렉터리는 구현 착수 전의 **디자인 인계 번들**이다.
+코드베이스는 `src/` 에 있고, Supabase 스키마는 `db/` 에 있다. 아래 문서들은 **설계 근거**이며 저장소에는 없다(로컬 전용).
 
 ```
 CLAUDE.md
-db/                                Supabase 에 적용할 SQL (00 초기화 / 01 스키마 / 02 RLS / 03 검증)
+.mcp.json                          Supabase MCP 서버 (2026-09-02 연결)
+db/                                00 초기화 / 01 스키마 / 02 RLS / 03 검증
+                                   04 3T1F / 05 게임1 / 06 게임2 / 07 스크린+관리자
+src/                               앱 (구조는 아래 "구현 현황" 참조)
 GenZLab_워크샵_게임시스템_기획서.md   ← 아래 기획서.md와 바이트 단위로 동일한 사본
 design_handoff_genzlab_workshop_game/
-  README.md                      개발 인계 문서 (디자인 토큰·컴포넌트 규격·화면 27컷·구현 순서)
-  기획서.md                       원본 기획서 (아키텍처 근거·DB 스키마·리스크·당일 운영 타임라인)
+  README.md                      개발 인계 문서 (디자인 토큰·컴포넌트 규격·화면 27컷)
+  기획서.md                       원본 기획서 (아키텍처 근거·DB 스키마·리스크·운영 타임라인)
   Workshop Game System.dc.html   27컷 디자인 시안 (#A1…#C4 앵커)
   assets/genzlab-logo.png        로고 74×74
 ```
 
-**이 문서들은 저장소에 없다.** 공개 저장소에 내부 운영 정보를 남기지 않으려고 `.gitignore` 로 제외했다(2026-09-01 결정). 로컬 작업 폴더에만 있으므로, 클론만 한 환경에서는 이 파일들이 보이지 않는다.
+**설계 문서 4종은 저장소에 없다.** 공개 저장소에 내부 운영 정보를 남기지 않으려고 `.gitignore` 로 제외했다(2026-09-01 결정). 클론만 한 환경에서는 보이지 않는다.
 
-**기획서가 두 벌 있고 내용이 같다.** 한쪽만 고치면 조용히 갈라진다. 기획서를 수정할 일이 생기면 두 파일을 함께 고치거나, 먼저 사용자에게 어느 쪽을 정본으로 남길지 확인한다.
+**기획서가 두 벌 있고 내용이 같다.** 한쪽만 고치면 조용히 갈라진다. 수정할 일이 생기면 두 파일을 함께 고치거나, 먼저 어느 쪽을 정본으로 남길지 확인한다.
 
-작업 시작 전 `design_handoff_genzlab_workshop_game/README.md`(하이파이 스펙)와 `기획서.md`(설계 근거)를 모두 읽는다. 둘이 충돌하면 README가 최신이다.
+새 화면을 만들 때는 `design_handoff_genzlab_workshop_game/README.md`(하이파이 스펙)를 먼저 본다. `기획서.md` 와 충돌하면 README가 최신이다.
 
-`Workshop Game System.dc.html`은 **참조용 시안이며 제품 코드로 복사하지 않는다.** 스트리밍 프리뷰용 커스텀 태그(`<x-dc>`, `<helmet>`)와 인라인 스타일 구조는 무시하고, 안쪽 마크업의 레이아웃·색·치수만 컴포넌트로 재구성한다. 브라우저로 열어 `#A1`…`#C4` 앵커로 각 화면을 확인할 수 있다.
+`Workshop Game System.dc.html`은 **참조용 시안이며 제품 코드로 복사하지 않는다.** 커스텀 태그(`<x-dc>`, `<helmet>`)와 인라인 스타일 구조는 무시하고, 레이아웃·색·치수만 참고한다. 브라우저로 열어 `#A1`…`#C4` 앵커로 각 화면을 볼 수 있다.
 
 ## 만들 것
 
@@ -156,7 +194,7 @@ lobby → game1 → game1_reveal → game2_wait → game2_question
 
 관리자 권한은 클라이언트에서 판단하지 않는다. Supabase RPC에서 PIN을 검증한 뒤에만 `game_state` 변경을 허용한다(참여자가 `#/admin` URL을 알아도 조작 불가).
 
-### DB 는 이미 구축돼 있다 (2026-09-01 적용 완료)
+### DB 구축 (2026-09-01 스키마 · 2026-09-02 RPC 전체)
 
 `db/` 의 SQL 을 Supabase 프로젝트 `xzfecrlzejtjwpvjunkc` 에 실행해둔 상태다. 테이블 9개, RLS 정책 4개, RPC 2개(`join_session`, `admin_verify_pin`), Realtime 3개 테이블. `db/03_verify.sql` 을 돌리면 현재 상태를 8줄로 검증할 수 있다.
 
