@@ -51,7 +51,7 @@ export default function Login({ onJoined, onNeedName }) {
           진실 셋,<br />거짓 하나.
         </h1>
         <p className="text-[15px] font-normal leading-[1.6] text-[#D5C6FF]">
-          Knox ID만 입력하면 바로 입장합니다.<br />개인 LTE로 접속해 주세요.
+          Knox ID만 입력하면 바로 입장합니다.
         </p>
       </div>
 
