@@ -117,6 +117,19 @@ begin
     );
   end if;
 
+  -- 조가 'done' 으로 끝난 뒤 지각자가 문장을 쓰고 합류하면 발표자가 새로 생긴다.
+  -- 이때 phase 를 되살리지 않으면 두 가지가 동시에 깨진다.
+  --   · cast_vote 가 NOT_VOTING_PHASE 로 막혀 아무도 투표할 수 없다.
+  --   · v_reveal 이 참이 되어 지각자의 거짓이 투표 전에 공개된다.
+  if st.phase = 'done' then
+    st.phase           := 'speaking';
+    st.turn_started_at := now();
+    st.phase_started_at := now();
+    update team_g1_state
+       set phase = 'speaking', turn_started_at = now(), phase_started_at = now()
+     where team_no = v_team;
+  end if;
+
   -- 분모: 활성 + 문장 작성 완료 + 발표자 제외. 매번 현재 편성으로 계산한다.
   select count(*) into v_voters
     from participants p
