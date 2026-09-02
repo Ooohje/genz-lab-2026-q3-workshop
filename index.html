@@ -2,7 +2,11 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="./genzlab-logo.png" />
+    <!-- %BASE_URL% 은 Vite 가 빌드 때 base 경로로 치환한다.
+         './' 로 두면 주소 끝에 슬래시가 없을 때 루트로 잘못 풀려 404 가 난다. -->
+    <link rel="icon" type="image/png" sizes="74x74" href="%BASE_URL%genzlab-logo.png" />
+    <link rel="apple-touch-icon" href="%BASE_URL%genzlab-logo.png" />
+    <meta name="apple-mobile-web-app-title" content="Gen Z Lab." />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1" />
     <meta name="theme-color" content="#6A2FF0" />
     <title>Gen Z Lab. 2026년 3분기 워크샵</title>
