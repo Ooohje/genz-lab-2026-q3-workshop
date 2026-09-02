@@ -8,6 +8,7 @@ import NameEntry from './NameEntry'
 import StatementForm from './StatementForm'
 import TeamWait from './TeamWait'
 import Lobby from './Lobby'
+import Game1 from './game1/Game1'
 import PhaseStub from './PhaseStub'
 
 export default function ParticipantApp() {
@@ -91,7 +92,12 @@ export default function ParticipantApp() {
     )
   }
 
-  // 게임 1·2 화면은 4·5단계에서 붙는다.
+  // --- 게임 1 ---------------------------------------------------------
+  if (phase === 'game1' || phase === 'game1_reveal') {
+    return <Game1 participant={participant} teamName={teamName} />
+  }
+
+  // 게임 2 화면은 5단계에서 붙는다.
   return (
     <PhaseStub
       participant={participant}
