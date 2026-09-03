@@ -62,11 +62,12 @@ export default function Roster({ pin }) {
         </label>
         <button
           onClick={() => {
-            const no = Number(prompt('조 번호'))
+            // 조 이름은 쓰지 않는다 — 번호만 받고 이름은 'N조'로 자동 채운다.
+            const nextNo = data.teams.reduce((m, t) => Math.max(m, t.team_no), 0) + 1
+            const no = Number(prompt('조 번호', String(nextNo)))
             if (!no) return
             call('admin_upsert_team', {
-              p_team_no: no, p_name: prompt('조 이름', `${no}조`) ?? `${no}조`,
-              p_is_active: true, p_ord: no,
+              p_team_no: no, p_name: `${no}조`, p_is_active: true, p_ord: no,
             })
           }}
           className="rounded-[12px] bg-surface px-[14px] py-[10px] text-[13px] font-bold text-ink"
@@ -100,6 +101,7 @@ export default function Roster({ pin }) {
             onAssign={(k, t) => call('admin_assign', { p_knox_id: k, p_team_no: t })}
             onToggle={(k, v) => call('admin_set_active', { p_knox_id: k, p_is_active: v })}
             onRenameMember={(k, n) => call('admin_rename_participant', { p_knox_id: k, p_name: n })}
+            onChangeKnox={(k, nk) => call('admin_change_knox_id', { p_old: k, p_new: nk })}
             onReset={(k) => call('admin_reset_participant', { p_knox_id: k })}
             onDelete={(k) => call('admin_delete_participant', { p_knox_id: k })}
             busy={busy}
@@ -124,6 +126,7 @@ export default function Roster({ pin }) {
             onAssign={(k, tn) => call('admin_assign', { p_knox_id: k, p_team_no: tn })}
             onToggle={(k, v) => call('admin_set_active', { p_knox_id: k, p_is_active: v })}
             onRenameMember={(k, n) => call('admin_rename_participant', { p_knox_id: k, p_name: n })}
+            onChangeKnox={(k, nk) => call('admin_change_knox_id', { p_old: k, p_new: nk })}
             onReset={(k) => call('admin_reset_participant', { p_knox_id: k })}
             onDelete={(k) => call('admin_delete_participant', { p_knox_id: k })}
             busy={busy}
@@ -136,7 +139,7 @@ export default function Roster({ pin }) {
 
 function TeamCard({
   title, subtitle, warn, members, teams,
-  onRename, onDeleteTeam, onAssign, onToggle, onRenameMember, onReset, onDelete, busy,
+  onRename, onDeleteTeam, onAssign, onToggle, onRenameMember, onChangeKnox, onReset, onDelete, busy,
 }) {
   return (
     <section className={`flex flex-col gap-[10px] rounded-[18px] p-[14px] ${warn ? 'bg-warn-tint' : 'bg-white'}`}>
@@ -175,7 +178,20 @@ function TeamCard({
                 {m.has_statements ? '완료' : '미작성'}
               </span>
             </div>
-            <span className="num truncate text-[10px] text-muted">{m.knox_id}</span>
+            <button
+              title="Knox ID 정정 — 작성·투표·답안은 새 ID 로 옮겨진다"
+              disabled={busy}
+              onClick={() => {
+                const nk = prompt('Knox ID', m.knox_id)
+                if (nk && nk.trim().toLowerCase() !== m.knox_id) {
+                  onChangeKnox(m.knox_id, nk.trim().toLowerCase())
+                }
+              }}
+              className="num flex min-w-0 items-center gap-[3px] text-left text-[10px] text-muted"
+            >
+              <span className="truncate">{m.knox_id}</span>
+              <span className="shrink-0">✎</span>
+            </button>
             <div className="flex items-center gap-[4px]">
               <select
                 value={m.team_no ?? ''}

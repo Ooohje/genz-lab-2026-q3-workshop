@@ -201,6 +201,47 @@ begin
 end;
 $fn$;
 
+-- Knox ID 정정 (당일 오타 대응). knox_id 는 participants 의 PK 이고
+-- statements/answers/votes_3t1f 가 FK 로 참조한다(on update cascade 없음).
+-- 그래서 새 행을 만들고 → 자식을 옮기고 → 옛 행을 지운다. 각 단계에서 FK 가
+-- 항상 만족되므로 작성·투표·답안이 보존된다.
+-- team_g1_state.speaker_order 는 FK 가 아니라 knox_id 문자열 배열이라 따로 치환한다.
+create or replace function admin_change_knox_id(p_pin text, p_old text, p_new text)
+returns void
+language plpgsql security definer set search_path = public
+as $fn$
+declare
+  v_old text := lower(trim(coalesce(p_old, '')));
+  v_new text := lower(trim(coalesce(p_new, '')));
+begin
+  if not admin_verify_pin(p_pin) then raise exception 'BAD_PIN'; end if;
+  if v_new = '' then raise exception 'KNOX_ID_REQUIRED'; end if;
+  if v_old = v_new then return; end if;
+  if not exists (select 1 from participants where knox_id = v_old) then
+    raise exception 'NOT_A_PARTICIPANT';
+  end if;
+  if exists (select 1 from participants where knox_id = v_new) then
+    raise exception 'KNOX_ID_TAKEN';
+  end if;
+
+  insert into participants (knox_id, name, team_no, is_active, is_preregistered, joined_at, last_seen)
+  select v_new, name, team_no, is_active, is_preregistered, joined_at, now()
+    from participants where knox_id = v_old;
+
+  update statements  set knox_id     = v_new where knox_id     = v_old;
+  update answers     set knox_id     = v_new where knox_id     = v_old;
+  update votes_3t1f  set voter_knox  = v_new where voter_knox  = v_old;
+  update votes_3t1f  set target_knox = v_new where target_knox = v_old;
+
+  update team_g1_state
+     set speaker_order = replace(speaker_order::text,
+                                 format('"%s"', v_old), format('"%s"', v_new))::jsonb
+   where speaker_order ? v_old;
+
+  delete from participants where knox_id = v_old;
+end;
+$fn$;
+
 -- 개인 상태 초기화 (폰 문제 대응). 세션을 새로 시작하게 만든다.
 create or replace function admin_reset_participant(p_pin text, p_knox_id text)
 returns void
@@ -385,6 +426,7 @@ grant execute on function admin_assign(text, text, int)                to anon, 
 grant execute on function admin_set_active(text, text, boolean)        to anon, authenticated;
 grant execute on function admin_delete_participant(text, text)         to anon, authenticated;
 grant execute on function admin_rename_participant(text, text, text)   to anon, authenticated;
+grant execute on function admin_change_knox_id(text, text, text)       to anon, authenticated;
 grant execute on function admin_reset_participant(text, text)          to anon, authenticated;
 grant execute on function admin_upload_roster(text, jsonb)             to anon, authenticated;
 grant execute on function admin_list_questions(text)                   to anon, authenticated;

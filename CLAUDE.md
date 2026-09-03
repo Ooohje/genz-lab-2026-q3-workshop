@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 |---|---|
 | 코드 | 8단계 전부 구현, `main` 에 푸시 완료 |
 | 배포 | ✅ https://ooohje.github.io/genz-lab-2026-q3-workshop/ — 2026-09-03 첫 성공. 이전까지 `Roster.jsx` 가 `.gitignore` `roster*` 에 걸려 빠지면서 CI 빌드가 6번 연속 깨져 있었다(로컬은 통과) |
-| DB | `db/00~07` 전부 적용. RPC 39개 (`admin_rename_participant` 2026-09-03 추가) |
+| DB | `db/00~07` 전부 적용. RPC 40개 (`admin_rename_participant` · `admin_change_knox_id` 2026-09-03 추가) |
 | 문서 | `README.md` + `docs/screens/` 실화면 21컷 커밋·푸시 완료 (2026-09-03). 재촬영 스크립트 `npm run screens` (`scripts/capture-screens.mjs`, Playwright) |
 | 검증 완료 | 로그인·정규화 · Realtime(실기기 2대) · **게임 1 턴 전환 4턴 전 구간** · **게임 2 출제~채점~리더보드** · 스크린 RPC 3종 · 관리자 23개 PIN 가드 전수 · RLS 잠금 · **브라우저 실화면 전 구간**(참여자 10컷 · 스크린 5컷 · 관리자 4컷) · **GitHub Pages 배포** |
 | **미검증** | 실기기 리허설 |
@@ -37,18 +37,20 @@ README 스크린샷용으로 심은 데모다. 실제 참가자 데이터는 **�
 
 2026-09-03 에 테스트 잡것을 걷어냈다 — `teams` 98·99, 비활성 테스트 계정 7행(그중 하나가 실명·실사번 형태였다), 거기 얽힌 votes/answers. DB 에서는 완전히 사라졌다.
 
+같은 날 "조원들 초기화"로 게임 기록(`statements`·`votes_3t1f`·`answers`·`team_g1_state`)을 전부 비우고 `phase`=`lobby` 로 되돌렸다. demo 60명·10조·문항 8개는 유지 — 리허설 시작점.
+
 **⚠ 아직 남은 것: git 히스토리.** 그 Knox ID 가 커밋 4개(`1ef4251`·`f7b5db4`·`b37d4ed`·`98fda85`)의 `CLAUDE.md` 에 평문으로 있고 전부 원격에 푸시됐다. 히스토리 재작성(`git filter-branch`/`filter-repo` + `push --force`)이 필요한데, 이 세션에서는 도구 실행이 권한 분류기에 막혀 못 했다. 사용자가 직접 돌려야 한다.
 
 | 테이블 | 현재 | 내용 |
 |---|---|---|
 | `teams` | 10행 | 1~10번 = 데모 조 이름(`반짝이는 팀` 등) |
-| `participants` | 60행 | 전부 `demo01`~`demo61` 패턴. `demo` 아닌 행 없음 |
-| `statements` | 232행 | 데모 × 4. 미작성 2명(`demo61` 등) — 빈 작성 화면 캡처용이라 그대로 둔다 |
-| `votes_3t1f` | 4행 | 데모 잔여 |
-| `questions` | **8개** | 데모 문항. **실제 문항으로 교체할 것** |
-| `answers` | 390행 | 데모 잔여 |
-| `team_g1_state` | 10행 | |
-| `game_state` | `phase`=`final` · `current_question_id`=null · `revealed`=false | `final` 화면은 `answers` 로 집계한다. 정리하려면 `lobby` 로 |
+| `participants` | 60행 | 전부 `demo01`~`demo61` 패턴. `demo` 아닌 행 없음. 조 배정은 10조에 그대로 유지 |
+| `statements` | 0행 | 2026-09-03 "조원들 초기화"(= `admin_reset_game` 본문)로 비웠다 |
+| `votes_3t1f` | 0행 | 〃 |
+| `questions` | **8개** | 데모 문항. **실제 문항으로 교체할 것** (게임 기록 초기화 대상 아님) |
+| `answers` | 0행 | 〃 |
+| `team_g1_state` | 0행 | 〃 |
+| `game_state` | `phase`=`lobby` · 나머지 null/false | 게임 기록 초기화와 함께 `lobby` 로 되돌렸다 |
 
 demo 까지 지우려면 `admin_reset_game`(게임 기록만) 또는 `db/00_reset.sql`(전부). **둘 다 파괴적이므로 실행 전 확인받는다.**
 
@@ -253,7 +255,7 @@ src/
   views/admin/                 AdminView(C1) Dashboard(C2) Roster(C3) Questions(C4)
 ```
 
-**db/ 의 SQL 00~07 은 2026-09-02 에 전부 적용 완료했다.** RPC 39개가 실동작 검증까지 끝났다 — 문장 저장·셔플·입력검증, 게임 1 턴 전환 4턴 전 구간(자동 리빌 · 5초 후 전환 · 재선택 upsert · 발표자 단축 · 지각자 합류 · 발표자 이탈 건너뛰기 · 가드 6종), 게임 2 출제~채점~리더보드(스피드 보너스 차등 · 1회 확정 · `TOO_LATE` · 조 이동 시 분모 자동 추종), 관리자 23개 PIN 가드 전수. 2026-09-03 에 `admin_rename_participant`(이름 정정, PIN 가드 확인) 추가.
+**db/ 의 SQL 00~07 은 2026-09-02 에 전부 적용 완료했다.** RPC 40개가 실동작 검증까지 끝났다 — 문장 저장·셔플·입력검증, 게임 1 턴 전환 4턴 전 구간(자동 리빌 · 5초 후 전환 · 재선택 upsert · 발표자 단축 · 지각자 합류 · 발표자 이탈 건너뛰기 · 가드 6종), 게임 2 출제~채점~리더보드(스피드 보너스 차등 · 1회 확정 · `TOO_LATE` · 조 이동 시 분모 자동 추종), 관리자 24개 PIN 가드 전수. 2026-09-03 에 `admin_rename_participant`(이름 정정) · `admin_change_knox_id`(Knox ID 정정 — 새 행 생성 → 자식 FK 이동 → 옛 행 삭제로 작성·투표·답안 보존, demo60 왕복 검증) 추가.
 
 **브라우저 실화면도 전 구간 확인했다**(2026-09-03, `docs/screens/` 21컷). 남은 미검증은 실기기 리허설뿐이다.
 
@@ -298,7 +300,7 @@ README §13의 미정값 6개 중 현재 상태 (2026-09-01 기준):
 | 관리자 PIN | ✅ 설정 완료. **평문은 어디에도 없다** — DB 에 bcrypt 해시로만 존재하고 `db/01_schema.sql` 에는 자리표시자 `'0000'` 이 들어 있다. 값을 물어보거나 파일에 적지 말 것 |
 | GitHub Pages 배포 URL | ✅ https://ooohje.github.io/genz-lab-2026-q3-workshop/ (2026-09-03 배포 성공) |
 | 명단 CSV (Knox ID, 이름, 조) | ⬜ |
-| 데모 데이터 | 2026-09-03 테스트 잡것·개인정보 제거 후 `teams` 10 · `participants` 60(전부 demo) · `questions` 8 이 남아 있다. 상세는 맨 위 "현재 DB 상태" 참조. 실명단 업로드 전에 `db/00_reset.sql` |
+| 데모 데이터 | 2026-09-03 정리 후 `teams` 10 · `participants` 60(전부 demo, 조 배정 유지) · `questions` 8. 게임 기록은 비웠고 `phase`=`lobby`. 상세는 맨 위 "현재 DB 상태". 실명단 업로드 전에 `db/00_reset.sql` |
 | 문항 8개 최종본 | ⬜ |
 | 조 이름 10개 | ⬜ |
 
