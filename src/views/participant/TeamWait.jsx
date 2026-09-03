@@ -1,12 +1,14 @@
 import TopBar from '../../components/TopBar'
 import BottomBar from '../../components/BottomBar'
 import Cta from '../../components/Cta'
+import WriteTimerBanner from '../../components/WriteTimerBanner'
 
 /** A3 — 조 배정 대기. 관리자가 조를 배정하는 순간 Realtime 으로 화면이 넘어간다. */
 export default function TeamWait({ participant, onWriteStatements, hasStatements }) {
   return (
     <div className="flex h-full flex-col bg-surface">
       <TopBar participant={participant} />
+      <WriteTimerBanner />
 
       <div className="flex flex-1 flex-col items-center justify-center gap-[20px] px-[24px] text-center">
         <div className="flex h-[96px] w-[96px] animate-bob items-center justify-center gap-[6px] rounded-[28px] bg-warn-tint">

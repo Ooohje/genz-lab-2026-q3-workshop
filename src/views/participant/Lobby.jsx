@@ -1,6 +1,7 @@
 import TopBar from '../../components/TopBar'
 import BottomBar from '../../components/BottomBar'
 import Cta from '../../components/Cta'
+import WriteTimerBanner from '../../components/WriteTimerBanner'
 
 /** A6 — 로비. 게임 1 시작을 기다리며 조원 작성 현황을 본다. */
 export default function Lobby({ participant, teamName, roster, onEditStatements }) {
@@ -9,6 +10,7 @@ export default function Lobby({ participant, teamName, roster, onEditStatements 
   return (
     <div className="flex h-full flex-col bg-surface">
       <TopBar participant={participant} teamName={teamName} />
+      <WriteTimerBanner />
 
       <div className="flex flex-1 flex-col gap-[20px] overflow-y-auto p-[22px_20px]">
         <div className="flex flex-col gap-[10px] rounded-card bg-brand p-[24px]">
