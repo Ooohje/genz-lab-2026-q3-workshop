@@ -57,8 +57,10 @@
 /* 라이트 전용. index.html 의 color-scheme meta 와 짝이다.
    이 선언이 없으면 브라우저의 강제 다크 모드가 색을 반전시킨다.
    게임 2 화면은 "다크 모드"가 아니라 의도적으로 어두운 디자인이므로
-   반전되면 오히려 밝아져 완전히 망가진다. */
-:root { color-scheme: light; }
+   반전되면 오히려 밝아져 완전히 망가진다.
+   `only light` = UA 강제 다크(Chromium Auto Dark Theme)까지 opt-out.
+   `light` 만으로는 삼성 인터넷·Chrome 의 "웹페이지 어둡게" 를 못 막는다. */
+:root { color-scheme: only light; }
 
 html, body, #root { height: 100%; }
 
