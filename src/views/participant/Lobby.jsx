@@ -22,7 +22,7 @@ export default function Lobby({ participant, teamName, roster, onEditStatements 
         </div>
 
         <div className="flex items-baseline justify-between">
-          <span className="text-[13px] font-semibold text-muted">우리 팀 작성 현황</span>
+          <span className="text-[13px] font-semibold text-muted">우리 조 작성 현황</span>
           <span className="num text-[13px] font-bold text-ink">{done}/{roster.length}</span>
         </div>
 

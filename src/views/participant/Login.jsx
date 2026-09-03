@@ -84,7 +84,7 @@ export default function Login({ onJoined, onNeedName }) {
         </button>
 
         <p className="text-center text-[12px] text-[#C0ABF5]">
-          명단에 없으면 이름 입력 후 팀 배정을 기다립니다
+          명단에 없으면 이름 입력 후 조 배정을 기다립니다
         </p>
       </div>
     </form>

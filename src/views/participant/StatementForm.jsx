@@ -46,7 +46,7 @@ export default function StatementForm({ participant, teamName, existing, onSaved
     if (error) {
       setError(
         error.message.includes('ALREADY_VOTED')
-          ? '이미 팀원들이 투표를 시작해서 문장을 바꿀 수 없습니다.'
+          ? '이미 조원들이 투표를 시작해서 문장을 바꿀 수 없습니다.'
           : '저장에 실패했습니다. 다시 시도해 주세요.',
       )
       return

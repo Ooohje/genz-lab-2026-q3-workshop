@@ -18,7 +18,7 @@ export default function Game1({ participant, teamName }) {
     return <Waiting participant={participant} teamName={teamName} label="진행자가 게임 1을 시작하면 넘어갑니다" />
   }
   if (view.state === 'no_team') {
-    return <Waiting participant={participant} teamName={teamName} label="팀 배정을 기다리는 중" />
+    return <Waiting participant={participant} teamName={teamName} label="조 배정을 기다리는 중" />
   }
   if (view.state === 'done') {
     return <TeamDone participant={participant} teamName={teamName} />
@@ -73,9 +73,9 @@ function TeamDone({ participant, teamName }) {
         <div className="flex h-[96px] w-[96px] animate-bob items-center justify-center rounded-[28px] bg-success-tint text-[40px]">
           🎉
         </div>
-        <h1 className="text-[26px] font-bold tracking-[-0.02em] text-ink">우리 팀 완료!</h1>
+        <h1 className="text-[26px] font-bold tracking-[-0.02em] text-ink">우리 조 완료!</h1>
         <p className="max-w-[280px] text-[13px] leading-[1.6] text-muted">
-          팀원 전원의 리빌이 끝났습니다. 다른 팀이 끝나면 게임 2로 넘어갑니다.
+          조원 전원의 리빌이 끝났습니다. 다른 조가 끝나면 게임 2로 넘어갑니다.
         </p>
       </div>
       <BottomBar>

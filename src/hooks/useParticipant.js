@@ -88,7 +88,7 @@ export function useParticipant(initial, { onGone } = {}) {
     document.addEventListener('visibilitychange', resync)
     window.addEventListener('online', resync)
 
-    // useGameState 와 같은 이유의 폴링 안전망. 팀 배정은 phase 전환만큼
+    // useGameState 와 같은 이유의 폴링 안전망. 조 배정은 phase 전환만큼
     // 급하지 않아 주기를 길게 잡는다.
     const poll = setInterval(() => {
       if (document.visibilityState === 'visible') pull()

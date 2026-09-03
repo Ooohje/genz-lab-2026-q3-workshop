@@ -22,10 +22,10 @@ export default function Final({ participant }) {
           {rank > 0 ? `${rank}위` : '—'}
         </span>
         <span className="text-[20px] font-bold text-brand-lime">
-          {mine?.name ?? `${participant.team_no}팀`}
+          {mine?.name ?? `${participant.team_no}조`}
         </span>
         <span className="num text-[14px] font-semibold text-[#CBB4FF]">
-          팀 평균 {mine?.avg ?? 0}점
+          조 평균 {mine?.avg ?? 0}점
         </span>
       </div>
 
@@ -39,7 +39,7 @@ export default function Final({ participant }) {
       {stats?.best_liar && (
         <div className="flex flex-col gap-[6px] rounded-card bg-brand-lime p-[20px]">
           <span className="text-[13px] font-bold text-brand-deep/70">
-            우리 팀에서 가장 잘 속인 사람
+            우리 조에서 가장 잘 속인 사람
           </span>
           <span className="text-[26px] font-bold tracking-[-0.02em] text-brand-deep">
             {stats.best_liar}
