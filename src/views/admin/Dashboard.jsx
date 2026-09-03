@@ -8,6 +8,8 @@ export default function Dashboard({ pin, gameState }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const [notice, setNotice] = useState('')
+  const [writeMin, setWriteMin] = useState(3)
+  const writeOn = gameState?.write_started_at != null
 
   const pull = useCallback(async () => {
     const [dash, qs] = await Promise.all([
@@ -79,6 +81,35 @@ export default function Dashboard({ pin, gameState }) {
             </p>
           )}
           {error && <p className="text-[12px] font-semibold text-fake">{error}</p>}
+
+          <div className="flex items-center gap-[8px] border-t border-line pt-[12px]">
+            <span className="text-[12px] font-bold text-ink">3T1F 작성 시간</span>
+            <input
+              type="number"
+              min={1}
+              max={30}
+              value={writeMin}
+              onChange={(e) => setWriteMin(e.target.value)}
+              disabled={busy}
+              className="num w-[52px] rounded-[10px] border border-line px-[8px] py-[6px] text-[13px]"
+            />
+            <span className="text-[12px] text-muted">분</span>
+            <Btn
+              onClick={() => call('admin_set_write_timer', { p_sec: Math.max(1, Number(writeMin)) * 60 })}
+              disabled={busy}
+              tone="brand"
+            >
+              {writeOn ? '다시 시작' : '시작'}
+            </Btn>
+            <Btn onClick={() => call('admin_set_write_timer', { p_sec: 0 })} disabled={busy || !writeOn} tone="ghost">
+              중지
+            </Btn>
+            {writeOn && (
+              <span className="text-[12px] font-semibold text-brand">
+                진행 중 · {Math.round((gameState.write_limit_sec ?? 0) / 60)}분 설정
+              </span>
+            )}
+          </div>
         </Panel>
 
         <Panel title="팀별 게임 1 진행률">

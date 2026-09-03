@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase'
 import TopBar from '../../components/TopBar'
 import BottomBar from '../../components/BottomBar'
 import Cta from '../../components/Cta'
+import WriteTimerBanner from '../../components/WriteTimerBanner'
 
 const PLACEHOLDERS = [
   '예: 번지점프를 3번 해봤다',
@@ -56,6 +57,7 @@ export default function StatementForm({ participant, teamName, existing, onSaved
   return (
     <div className="flex h-full flex-col bg-surface">
       <TopBar participant={participant} teamName={teamName} />
+      <WriteTimerBanner />
 
       <div className="flex flex-1 flex-col gap-[14px] overflow-y-auto p-[22px_20px]">
         <div className="flex flex-col gap-[4px]">

@@ -50,7 +50,10 @@ begin
           phase_started_at = now();
   end loop;
 
-  update game_state set phase = 'game1', updated_at = now() where id = 1;
+  -- 게임 1 로 넘어가면 작성 시간 배너는 더 볼 일이 없다. 같이 끈다.
+  update game_state
+     set phase = 'game1', write_started_at = null, write_limit_sec = null, updated_at = now()
+   where id = 1;
 end;
 $fn$;
 

@@ -60,6 +60,40 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------
+-- ---------------------------------------------------------------------
+-- 3T1F 작성 제한시간 (소프트 — 표시만, 강제 종료 없음).
+-- game_state.write_started_at/limit_sec 를 관리자가 켜고, 스크린·폰이 폴링해
+-- 남은 시간을 위에 띄운다. server_now 로 각 단말 시계를 보정한다.
+-- ---------------------------------------------------------------------
+create or replace function admin_set_write_timer(p_pin text, p_sec int)
+returns void
+language plpgsql security definer set search_path = public
+as $fn$
+begin
+  if not admin_verify_pin(p_pin) then raise exception 'BAD_PIN'; end if;
+  if p_sec is null or p_sec <= 0 then
+    update game_state set write_started_at = null, write_limit_sec = null, updated_at = now() where id = 1;
+  else
+    update game_state set write_started_at = now(), write_limit_sec = p_sec, updated_at = now() where id = 1;
+  end if;
+end;
+$fn$;
+
+create or replace function get_write_timer()
+returns jsonb
+language sql security definer set search_path = public
+as $fn$
+  select jsonb_build_object(
+    'server_now', now(),
+    'started_at', write_started_at,
+    'limit_sec',  write_limit_sec
+  ) from game_state where id = 1;
+$fn$;
+
+grant execute on function admin_set_write_timer(text, int) to anon, authenticated;
+grant execute on function get_write_timer()                to anon, authenticated;
+
+-- ---------------------------------------------------------------------
 -- 내 문장 조회 — 본인 것이므로 is_lie 를 포함해도 된다(자기 거짓말은 안다).
 -- ---------------------------------------------------------------------
 create or replace function get_my_statements(p_knox_id text)

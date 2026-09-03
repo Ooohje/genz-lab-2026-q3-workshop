@@ -5,6 +5,7 @@ import { useGameState } from '../../hooks/useGameState'
 import { useRemaining } from '../../hooks/useQuestion'
 import { noteServerTime } from '../../lib/clock'
 import Timer from '../../components/Timer'
+import WriteTimerBanner from '../../components/WriteTimerBanner'
 
 /**
  * 빔프로젝터용 스크린 뷰 (#/screen). 기준 해상도 1920 × 1080.
@@ -65,9 +66,10 @@ function Entry() {
           진실 셋,<br />거짓 하나.
         </h1>
 
-        <div className="flex gap-[24px]">
+        <div className="flex items-center gap-[24px]">
           <Counter label="접속 중" value={counts.joined_count} />
           <Counter label="3T1F 작성 완료" value={counts.written_count} />
+          <WriteTimerBanner size="screen" />
         </div>
       </div>
 
