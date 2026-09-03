@@ -100,7 +100,10 @@ begin
     'answered_count', (select count(*) from answers x
                         join participants p on p.knox_id = x.knox_id and p.is_active
                        where x.question_id = q.id),
-    'active_count',   (select count(*) from participants where is_active),
+    -- "N명 응답" 의 분모는 지금 접속한 사람 수다(명단 전체가 아니라).
+    -- 게임 2 도중 들어온 사람도 heartbeat 를 보내는 순간 여기 잡힌다.
+    'active_count',   (select count(*) from participants
+                        where is_active and last_seen > now() - interval '45 seconds'),
     'my_choice',      a.choice,
     -- 정답 여부·점수도 공개 전에는 알려주지 않는다. 옆사람에게 새어나간다.
     'my_score',       case when gs.revealed then a.score else null end,

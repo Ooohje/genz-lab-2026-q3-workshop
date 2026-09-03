@@ -27,17 +27,22 @@ export default function ScreenView() {
   return <Leaderboard final={phase === 'final'} />
 }
 
-/* ---------------------------------------------------------------- B1 */
-function Entry() {
+/** 입장 QR. 로비(B1)와 게임 2 대기 화면이 같이 쓴다 — 늦게 온 사람이 어느 단계에서든 들어올 수 있게. */
+function useEntryQr() {
   const [qr, setQr] = useState(null)
-  const [counts, setCounts] = useState({ joined_count: 0, written_count: 0 })
   const url = window.location.href.replace(/#.*$/, '')
-
   useEffect(() => {
     QRCode.toDataURL(url, { width: 784, margin: 1, errorCorrectionLevel: 'M' })
       .then(setQr)
       .catch(() => setQr(null))
   }, [url])
+  return { qr, url }
+}
+
+/* ---------------------------------------------------------------- B1 */
+function Entry() {
+  const { qr, url } = useEntryQr()
+  const [counts, setCounts] = useState({ joined_count: 0, written_count: 0 })
 
   useEffect(() => {
     const pull = () => supabase.rpc('get_progress_counts')
@@ -158,11 +163,26 @@ function Pill({ label, value }) {
   )
 }
 
+/**
+ * 게임 2 대기. 게임 1 뒤 쉬는 시간에 늦게 오는 사람이 있어서 QR 을 함께 띄운다.
+ * 이때 들어온 사람은 다음 문제부터 바로 풀 수 있고, 점수 분모는 응답자 기준이라
+ * 늦게 들어와도 팀 평균을 깎지 않는다.
+ */
 function Standby() {
+  const { qr, url } = useEntryQr()
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-[24px] bg-ink">
-      <span className="text-[120px] font-bold tracking-[-0.03em] text-white">게임 2</span>
-      <span className="text-[40px] font-semibold text-white/50">곧 첫 문제가 나옵니다</span>
+    <div className="flex h-full items-center gap-[80px] bg-ink p-[80px]">
+      <div className="flex flex-1 flex-col gap-[24px]">
+        <span className="text-[120px] font-bold leading-none tracking-[-0.03em] text-white">게임 2</span>
+        <span className="text-[40px] font-semibold text-white/50">곧 첫 문제가 나옵니다</span>
+      </div>
+      <div className="flex w-[400px] flex-none flex-col items-center gap-[20px] rounded-[36px] bg-white p-[36px]">
+        {qr
+          ? <img src={qr} alt="" className="h-[328px] w-[328px]" />
+          : <div className="h-[328px] w-[328px] rounded-[20px] bg-surface" />}
+        <span className="text-[30px] font-bold text-ink">아직 못 들어왔다면 QR</span>
+        <span className="num text-[24px] font-semibold text-muted">{url.replace(/^https?:\/\//, '')}</span>
+      </div>
     </div>
   )
 }

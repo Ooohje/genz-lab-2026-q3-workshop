@@ -53,7 +53,8 @@ begin
     'answered_count', (select count(*) from answers x
                         join participants p on p.knox_id = x.knox_id and p.is_active
                        where x.question_id = q.id),
-    'active_count', (select count(*) from participants where is_active),
+    'active_count', (select count(*) from participants
+                      where is_active and last_seen > now() - interval '45 seconds'),
     'answer', case when gs.revealed then q.answer else null end,
     'explanation', case when gs.revealed then q.explanation else null end,
     'distribution', case when gs.revealed then (

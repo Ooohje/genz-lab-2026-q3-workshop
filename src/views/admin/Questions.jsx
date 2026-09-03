@@ -133,7 +133,7 @@ export default function Questions({ pin }) {
               onChange={(e) => setDraft((d) => ({ ...d, time_limit_sec: e.target.value }))}
               className="num rounded-[10px] border border-line px-[8px] py-[6px] text-[13px]"
             >
-              {[10, 15, 20, 30].map((s) => <option key={s} value={s}>{s}초</option>)}
+              {[5, 7, 10, 15, 20, 30].map((s) => <option key={s} value={s}>{s}초</option>)}
             </select>
           </span>
         </div>
