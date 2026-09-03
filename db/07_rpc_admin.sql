@@ -268,7 +268,7 @@ begin
 
   -- CSV 에 등장하는 조 번호를 먼저 만들어 둔다.
   insert into teams (team_no, name, ord)
-  select distinct (x->>'team_no')::int, (x->>'team_no') || '조', (x->>'team_no')::int
+  select distinct (x->>'team_no')::int, (x->>'team_no') || '팀', (x->>'team_no')::int
     from jsonb_array_elements(p_rows) x
    where coalesce(x->>'team_no', '') <> ''
   on conflict (team_no) do nothing;

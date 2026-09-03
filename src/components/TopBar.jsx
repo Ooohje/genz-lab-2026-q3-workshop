@@ -6,8 +6,8 @@
 export default function TopBar({ participant, teamName, right, dark = false }) {
   const waiting = participant?.team_no == null
   const chip = waiting
-    ? '조 배정 대기'
-    : `${participant.team_no}조${teamName ? ` ${teamName}` : ''}`
+    ? '팀 배정 대기'
+    : `${participant.team_no}팀${teamName ? ` ${teamName}` : ''}`
 
   return (
     <header

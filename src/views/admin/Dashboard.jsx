@@ -43,7 +43,7 @@ export default function Dashboard({ pin, gameState }) {
         <div className="grid grid-cols-4 gap-[14px]">
           <Metric label="접속" value={d?.joined ?? 0} />
           <Metric label="3T1F 작성" value={d?.written ?? 0} />
-          <Metric label="완료 조" value={d?.teams_done ?? 0} />
+          <Metric label="완료 팀" value={d?.teams_done ?? 0} />
           <Metric label="배정 대기" value={d?.unassigned ?? 0} warn={(d?.unassigned ?? 0) > 0} />
         </div>
 
@@ -51,7 +51,7 @@ export default function Dashboard({ pin, gameState }) {
           <div className="flex flex-wrap gap-[10px]">
             <Btn onClick={() => call('admin_start_game1')} disabled={busy}>게임 1 시작</Btn>
             <Btn onClick={() => call('admin_force_reveal', { p_team_no: null })} disabled={busy} tone="brand">
-              전 조 일괄 강제공개
+              전 팀 일괄 강제공개
             </Btn>
             <Btn onClick={() => call('admin_start_game2')} disabled={busy} tone="ink">게임 2 시작</Btn>
             <Btn
@@ -81,7 +81,7 @@ export default function Dashboard({ pin, gameState }) {
           {error && <p className="text-[12px] font-semibold text-fake">{error}</p>}
         </Panel>
 
-        <Panel title="조별 게임 1 진행률">
+        <Panel title="팀별 게임 1 진행률">
           <div className="grid grid-cols-2 gap-x-[20px] gap-y-[10px]">
             {(d?.teams ?? []).map((t) => {
               const late = t.phase !== 'done' && t.elapsed > 150
@@ -133,7 +133,7 @@ export default function Dashboard({ pin, gameState }) {
                   })}
                 className="shrink-0 rounded-[10px] border border-line bg-white px-[8px] py-[6px] text-[12px]"
               >
-                <option value="">조 선택</option>
+                <option value="">팀 선택</option>
                 {(d?.teams ?? []).map((t) => (
                   <option key={t.team_no} value={t.team_no}>{t.name}</option>
                 ))}

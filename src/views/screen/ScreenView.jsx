@@ -106,7 +106,7 @@ function G1Board() {
       <div className="flex items-end justify-between">
         <h1 className="text-[72px] font-bold tracking-[-0.03em] text-white">게임 1 진행 중</h1>
         <div className="flex gap-[20px]">
-          <Pill label="완료한 조" value={`${doneCount}/${teams.length}`} />
+          <Pill label="완료한 팀" value={`${doneCount}/${teams.length}`} />
         </div>
       </div>
 
@@ -351,7 +351,7 @@ function Leaderboard({ final }) {
           </div>
         ))}
         <p className="mt-auto text-[24px] leading-[1.5] text-white/50">
-          조 점수 = 조원 개인 점수 합 ÷ 실제 응답 조원 수
+          팀 점수 = 팀원 개인 점수 합 ÷ 실제 응답 팀원 수
         </p>
       </div>
     </div>

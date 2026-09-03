@@ -10,7 +10,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 |---|---|
 | 코드 | 8단계 전부 구현, `main` 에 푸시 완료 |
 | 배포 | ✅ https://ooohje.github.io/genz-lab-2026-q3-workshop/ — 2026-09-03 첫 성공. 이전까지 `Roster.jsx` 가 `.gitignore` `roster*` 에 걸려 빠지면서 CI 빌드가 6번 연속 깨져 있었다(로컬은 통과) |
-| DB | `db/00~07` 전부 적용. RPC 40개 (`admin_rename_participant` · `admin_change_knox_id` 2026-09-03 추가) |
+| DB | `db/00~07` 전부 적용. RPC 40개. **데이터는 비어 있음** (2026-09-03 전부 삭제 — 사용자가 직접 채운다) |
+| 부하 | ✅ 60명 동시접속 통과 (2026-09-03, `npm run load`) — 4,080요청 · 오류 0 · Realtime 60/60 · p99 ≤ 1s |
 | 문서 | `README.md` + `docs/screens/` 실화면 21컷 커밋·푸시 완료 (2026-09-03). 재촬영 스크립트 `npm run screens` (`scripts/capture-screens.mjs`, Playwright) |
 | 검증 완료 | 로그인·정규화 · Realtime(실기기 2대) · **게임 1 턴 전환 4턴 전 구간** · **게임 2 출제~채점~리더보드** · 스크린 RPC 3종 · 관리자 23개 PIN 가드 전수 · RLS 잠금 · **브라우저 실화면 전 구간**(참여자 10컷 · 스크린 5컷 · 관리자 4컷) · **GitHub Pages 배포** |
 | **미검증** | 실기기 리허설 |
@@ -24,35 +25,42 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### 다음에 할 일 (우선순위 순)
 
-1. **관리자 탭 3개 실화면 확인** — 참여자·스크린은 `docs/screens/` 로 확인됐는데 관리자는 PIN 게이트까지만 봤다.
-   `npm run dev` → `#/admin`. PIN 을 화면에 직접 입력해야 통과한다(평문은 어디에도 없다).
-   스크린은 `#/screen?phase=lobby` 처럼 phase 강제로 DB 안 건드리고 볼 수 있다.
-2. 사용자에게 **문항 8개 · 명단 CSV · 조 이름 10개** 를 받아 입력. 이게 없으면 리허설을 못 한다.
-3. **demo 데이터 정리** — 실명단 업로드 직전에 `db/00_reset.sql` 로 완전 초기화. (테스트 잡것·개인정보는 2026-09-03 에 이미 제거했다. 아래 참조.)
-4. 리허설(D-3~D-1) — 폰 2대 이상으로 전 구간.
+1. **사용자가 직접 내용물 입력** (2026-09-03 결정) — 관리자 화면에서 팀 추가(`+ 팀 추가`, 번호만) → 팀원 추가(`+ 팀원` 또는 CSV) → 문항 8개. DB 는 비어 있다.
+2. 리허설(D-3~D-1) — 폰 2대 이상으로 전 구간. 리허설 뒤에는 대시보드 `리허설 초기화` 로 게임 기록만 지우면 명단·문항은 남는다.
+3. 행사 종료 후 — 대시보드 `개인정보 전체 삭제`.
+4. (미완) git 히스토리의 Knox ID 1건 — 사용자가 `purge-pii-from-history.sh` 를 직접 돌려야 한다.
 
-### 현재 DB 상태 — demo 한 벌만 남아 있다. 실운영 전 정리 대상
+용어는 **"팀"** 으로 통일했다(2026-09-03). UI·README 에서 "조"는 전부 "팀"이 됐다. DB 컬럼(`team_no`, `teams`)과도 맞는다. 단 `docs/screens/` 의 스크린샷은 "조" 표기 시절 것이라 재촬영 전까지 어긋난다 — 데모 데이터를 다시 심어야 `npm run screens` 가 돈다.
 
-README 스크린샷용으로 심은 데모다. 실제 참가자 데이터는 **없다**.
+### 현재 DB 상태 — 비어 있다. 사용자가 직접 채운다
 
-2026-09-03 에 테스트 잡것을 걷어냈다 — `teams` 98·99, 비활성 테스트 계정 7행(그중 하나가 실명·실사번 형태였다), 거기 얽힌 votes/answers. DB 에서는 완전히 사라졌다.
+2026-09-03 사용자 지시로 **데이터 테이블을 전부 비웠다** — `teams` · `participants` · `questions` · `statements` · `votes_3t1f` · `answers` · `team_g1_state` 모두 0행, `game_state` 는 `lobby`. 남은 것은 스키마·RPC 40개·`app_config`(PIN 해시)뿐이다. 실제 참가자 데이터는 한 번도 들어간 적 없다.
 
-같은 날 "조원들 초기화"로 게임 기록(`statements`·`votes_3t1f`·`answers`·`team_g1_state`)을 전부 비우고 `phase`=`lobby` 로 되돌렸다. demo 60명·10조·문항 8개는 유지 — 리허설 시작점.
+이제부터 명단·팀·문항은 **사용자가 관리자 화면에서 직접 입력**한다. 에이전트가 데모 데이터를 심지 않는다.
+
+그 전에 걷어낸 것: 테스트 계정 7행(그중 하나가 실명·실사번 형태) · 테스트 팀 98·99 · README 촬영용 demo 60명/10팀/문항 8개 · 부하 테스트 계정 `loadtest01~60`.
 
 **⚠ 아직 남은 것: git 히스토리.** 그 Knox ID 가 커밋 4개(`1ef4251`·`f7b5db4`·`b37d4ed`·`98fda85`)의 `CLAUDE.md` 에 평문으로 있고 전부 원격에 푸시됐다. 히스토리 재작성(`git filter-branch`/`filter-repo` + `push --force`)이 필요한데, 이 세션에서는 도구 실행이 권한 분류기에 막혀 못 했다. 사용자가 직접 돌려야 한다.
 
-| 테이블 | 현재 | 내용 |
-|---|---|---|
-| `teams` | 10행 | 1~10번 = 데모 조 이름(`반짝이는 팀` 등) |
-| `participants` | 60행 | 전부 `demo01`~`demo61` 패턴. `demo` 아닌 행 없음. 조 배정은 10조에 그대로 유지 |
-| `statements` | 0행 | 2026-09-03 "조원들 초기화"(= `admin_reset_game` 본문)로 비웠다 |
-| `votes_3t1f` | 0행 | 〃 |
-| `questions` | **8개** | 데모 문항. **실제 문항으로 교체할 것** (게임 기록 초기화 대상 아님) |
-| `answers` | 0행 | 〃 |
-| `team_g1_state` | 0행 | 〃 |
-| `game_state` | `phase`=`lobby` · 나머지 null/false | 게임 기록 초기화와 함께 `lobby` 로 되돌렸다 |
+리허설 뒤 게임 기록만 지우려면 대시보드 `리허설 초기화`(`admin_reset_game`). 명단까지 지우려면 `개인정보 전체 삭제`. 스키마부터 다시 만들려면 `db/00_reset.sql`. **셋 다 파괴적이므로 실행 전 확인받는다.**
 
-demo 까지 지우려면 `admin_reset_game`(게임 기록만) 또는 `db/00_reset.sql`(전부). **둘 다 파괴적이므로 실행 전 확인받는다.**
+### 부하 테스트 (2026-09-03) — 60명 동시접속 통과
+
+`npm run load` (`scripts/load-test.mjs`). 가상 참가자 60명이 각자 별도 클라이언트(WebSocket 1개씩)로 실제 앱과 같은 폴링(`game_state` 5s · `get_g1_view` 2s · `get_my_statements`+`get_team_roster` 5s · 본인 행 15s)을 60초 돌리고, 5초 시점에 전원 동시 `save_statements`.
+
+| | 결과 |
+|---|---|
+| 총 요청 | 4,080건 · **66.8 req/s** |
+| 오류 | **0건 (0.00%)** |
+| Realtime 구독 | **60/60** |
+| `get_g1_view` (가장 잦음, 30/s) | p50 103ms · p95 458ms · p99 507ms |
+| `join_session` 60명 동시 | p50 516ms · max 580ms |
+| `save_statements` 60명 동시 | p50 828ms · max 874ms |
+| 나머지 조회 | p50 ~300ms · p99 ~1s |
+
+**판정: 무료 티어로 충분하다.** 최악 지연(~1s)이 폴링 주기(2~5s)와 문항 제한시간(15s)보다 한참 짧아 요청이 쌓이지 않는다.
+
+주의 — 이 테스트는 `phase=lobby` 에서 돌았다. `get_g1_view` 가 턴 판정 없이 일찍 돌아오는 경로이므로 게임 1 진행 중보다 가볍다. `submit_answer` 폭주(게임 2)도 안 쳤다. 그래도 60 클라이언트 × 2초 폴링 + Realtime 60개라는 **지속 부하**가 핵심이고 그건 검증됐다. 실기기 리허설에서 게임 1·2 구간을 눈으로 한 번 더 본다.
 
 ### 파괴적 작업은 먼저 물어본다
 
@@ -299,12 +307,12 @@ README §13의 미정값 6개 중 현재 상태 (2026-09-01 기준):
 | Supabase publishable key | ✅ `sb_publishable_gH8Bq6zz0IzYqlKXdwOeRw_4l4D8rx1` (구 anon key. 프론트에 박혀도 되는 공개 키) |
 | 관리자 PIN | ✅ 설정 완료. **평문은 어디에도 없다** — DB 에 bcrypt 해시로만 존재하고 `db/01_schema.sql` 에는 자리표시자 `'0000'` 이 들어 있다. 값을 물어보거나 파일에 적지 말 것 |
 | GitHub Pages 배포 URL | ✅ https://ooohje.github.io/genz-lab-2026-q3-workshop/ (2026-09-03 배포 성공) |
-| 명단 CSV (Knox ID, 이름, 조) | ⬜ |
-| 데모 데이터 | 2026-09-03 정리 후 `teams` 10 · `participants` 60(전부 demo, 조 배정 유지) · `questions` 8. 게임 기록은 비웠고 `phase`=`lobby`. 상세는 맨 위 "현재 DB 상태". 실명단 업로드 전에 `db/00_reset.sql` |
-| 문항 8개 최종본 | ⬜ |
-| 조 이름 10개 | ⬜ |
+| 명단 (Knox ID, 이름, 팀) | ⬜ 사용자가 관리자 화면에서 직접 입력한다 (2026-09-03 결정). CSV 업로드 또는 팀 카드의 `+ 팀원` |
+| 문항 8개 최종본 | ⬜ 사용자가 관리자 문항 탭에서 직접 입력 |
+| 팀 이름 | ✖ 쓰지 않기로 함 (2026-09-03). `N팀` 자동. 용어도 "조"→"팀"으로 통일 |
+| 데모 데이터 | 2026-09-03 전부 삭제. DB 는 스키마·RPC·PIN 만 남은 빈 상태. 상세는 맨 위 "현재 DB 상태" |
 
-나머지는 만들어내지 말고 사용자에게 확인한다. 시안에 들어있는 문항·조 이름·QR·밈 이미지는 전부 **자리표시자**다.
+나머지는 만들어내지 말고 사용자에게 확인한다. 시안에 들어있는 문항·팀 이름·QR·밈 이미지는 전부 **자리표시자**다.
 
 **Knox ID 는 소문자로 정규화한다.** 모바일 키보드가 첫 글자를 자동 대문자로 바꾸기 때문에, 정규화를 빠뜨리면 명단에 있는 사람이 "명단에 없음"으로 튕긴다. DB(`join_session` RPC)와 CSV 업로드 양쪽에서 `lower(trim())`, 입력창에는 `autocapitalize="none" autocorrect="off"`.
 
