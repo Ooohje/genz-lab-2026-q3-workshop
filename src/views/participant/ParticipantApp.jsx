@@ -67,9 +67,13 @@ export default function ParticipantApp() {
   const hasStatements = statements.length === 4
   const phase = gameState?.phase ?? 'lobby'
 
+  // 3T1F 작성은 로비~게임 1 동안만 의미가 있다. 게임 2 가 시작된 뒤 늦게 들어온
+  // 사람에게는 입력을 강요하지 않고 곧장 현재 화면으로 보낸다.
+  const canWriteStatements = phase === 'lobby' || phase === 'game1' || phase === 'game1_reveal'
+
   // --- 3T1F 작성 ------------------------------------------------------
   // 도착 직후 바로 작성하게 한다(기획서 §4.1). 조 배정 전에도 쓸 수 있다.
-  if (!hasStatements || editingStatements) {
+  if ((!hasStatements || editingStatements) && canWriteStatements) {
     return wrap(
       <StatementForm
         participant={participant}
