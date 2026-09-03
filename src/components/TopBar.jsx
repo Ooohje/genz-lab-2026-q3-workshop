@@ -5,9 +5,11 @@
  */
 export default function TopBar({ participant, teamName, right, dark = false }) {
   const waiting = participant?.team_no == null
+  // 팀 이름만 보여준다. 번호를 앞에 붙이면 자동 이름('N팀')과 겹쳐 '1팀 1팀'이 된다.
+  // 이름이 아직 안 왔으면(teams 조회 전) 번호로 잠깐 대신한다.
   const chip = waiting
     ? '팀 배정 대기'
-    : `${participant.team_no}팀${teamName ? ` ${teamName}` : ''}`
+    : (teamName ?? `${participant.team_no}팀`)
 
   return (
     <header
