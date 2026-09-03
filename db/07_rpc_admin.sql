@@ -185,6 +185,22 @@ begin
 end;
 $fn$;
 
+-- 이름 정정 (당일 오타 대응). 지웠다가 재로그인시키지 않아도 되게 한다.
+-- Knox ID 자체의 정정은 statements/answers/votes 의 FK 라 여기서 다루지 않는다 —
+-- 그 경우는 삭제 후 본인 재로그인.
+create or replace function admin_rename_participant(p_pin text, p_knox_id text, p_name text)
+returns void
+language plpgsql security definer set search_path = public
+as $fn$
+declare v_name text := trim(coalesce(p_name, ''));
+begin
+  if not admin_verify_pin(p_pin) then raise exception 'BAD_PIN'; end if;
+  if v_name = '' then raise exception 'NAME_REQUIRED'; end if;
+  update participants set name = v_name where knox_id = lower(trim(p_knox_id));
+  if not found then raise exception 'NOT_A_PARTICIPANT'; end if;
+end;
+$fn$;
+
 -- 개인 상태 초기화 (폰 문제 대응). 세션을 새로 시작하게 만든다.
 create or replace function admin_reset_participant(p_pin text, p_knox_id text)
 returns void
@@ -368,6 +384,7 @@ grant execute on function admin_delete_team(text, int)                 to anon, 
 grant execute on function admin_assign(text, text, int)                to anon, authenticated;
 grant execute on function admin_set_active(text, text, boolean)        to anon, authenticated;
 grant execute on function admin_delete_participant(text, text)         to anon, authenticated;
+grant execute on function admin_rename_participant(text, text, text)   to anon, authenticated;
 grant execute on function admin_reset_participant(text, text)          to anon, authenticated;
 grant execute on function admin_upload_roster(text, jsonb)             to anon, authenticated;
 grant execute on function admin_list_questions(text)                   to anon, authenticated;
