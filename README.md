@@ -168,10 +168,7 @@ npm run dev      # http://localhost:5173/genz-lab-2026-q3-workshop/
 npm run build
 npm run preview
 npm run lint
-npm run screens   # 위 화면들을 다시 캡처 (dev 서버가 떠 있어야 한다)
 ```
-
-`npm run screens`는 창을 하나 띄우고 관리자 PIN 입력을 기다린 뒤, 이 문서의 화면들을 `docs/screens/`에 다시 찍는다. 캡처를 위해 잠깐 바꾼 진행 단계와 조 배정은 끝나면 되돌린다. 배율(2배)을 바꾸면 새로 찍은 컷만 흐릿해지므로 스크립트의 `SCALE`은 건드리지 않는다.
 
 `npm run dev` URL에 **base 경로가 붙는다.** 루트(`/`)로 들어가면 화면이 안 뜬다.
 

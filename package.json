@@ -8,7 +8,6 @@
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "screens": "node scripts/capture-screens.mjs",
     "load": "node scripts/load-test.mjs"
   },
   "dependencies": {

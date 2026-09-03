@@ -12,7 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | 배포 | ✅ https://ooohje.github.io/genz-lab-2026-q3-workshop/ — 2026-09-03 첫 성공. 이전까지 `Roster.jsx` 가 `.gitignore` `roster*` 에 걸려 빠지면서 CI 빌드가 6번 연속 깨져 있었다(로컬은 통과) |
 | DB | `db/00~07` 전부 적용. RPC 40개. **데이터는 비어 있음** (2026-09-03 전부 삭제 — 사용자가 직접 채운다) |
 | 부하 | ✅ 60명 동시접속 통과 (2026-09-03, `npm run load`) — 4,080요청 · 오류 0 · Realtime 60/60 · p99 ≤ 1s |
-| 문서 | `README.md` + `docs/screens/` 실화면 21컷 커밋·푸시 완료 (2026-09-03). 재촬영 스크립트 `npm run screens` (`scripts/capture-screens.mjs`, Playwright) |
+| 문서 | `README.md` + `docs/screens/` 실화면 21컷. 대부분 예전 데모 데이터로 찍은 것 — 용어는 "조"로 맞지만 최신 UI(로그아웃 칩·작성 타이머 배너)는 안 담김. **자동 재촬영 불가**: anon 키로는 RLS 가 INSERT 를 막아 데모 데이터를 심을 수 없고, 실데이터로 찍으면 참가자 실명이 저장소에 들어간다. 재촬영하려면 SQL Editor(service_role)로 데모를 심고 손으로 찍은 뒤 지워야 한다 |
 | 검증 완료 | 로그인·정규화 · Realtime(실기기 2대) · **게임 1 턴 전환 4턴 전 구간** · **게임 2 출제~채점~리더보드** · 스크린 RPC 3종 · 관리자 23개 PIN 가드 전수 · RLS 잠금 · **브라우저 실화면 전 구간**(참여자 10컷 · 스크린 5컷 · 관리자 4컷) · **GitHub Pages 배포** |
 | **미검증** | 실기기 리허설 |
 | **미완** | git 히스토리에 유출된 Knox ID 1건 (커밋 4개 · 아래 참조). 재작성 필요 |
@@ -38,7 +38,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 마지막 확인 시점(2026-09-03 오후): `teams` 3 · `participants` 6(실명) · `questions` 0 · `phase` lobby.
 **이 6명은 실명·실사번이다** — 스크린샷·공개 문서에 넣지 말 것. 데이터는 계속 바뀌므로 실제 상태는 `db/03_verify.sql` 로 확인.
 
-명단·조·문항은 **사용자가 직접 입력**한다. 에이전트가 데모 데이터를 심지 않는다(스크린샷 재촬영 때만 예외 — 심고 바로 복원).
+명단·조·문항은 **사용자가 직접 입력**한다. 에이전트가 데모 데이터를 심지 않는다.
+
+**⚠ 2026-09-03 사고**: 스크린샷 재촬영 스크립트가 anon 키로 데모를 심으려 했으나 RLS 에 막혀 조용히 실패 → 실데이터로 촬영되어 `C3-admin-roster.png` 에 참가자 6명의 실명·Knox ID 가 찍혔다. **커밋 전에 발견해 `git checkout` 으로 원복**, 스크립트 삭제. git 히스토리엔 안 들어갔다. 교훈: 공유 DB 를 쓰는 자동 촬영은 seed 가 실제로 됐는지 count 로 검증하고, 안 됐으면 중단할 것.
 
 그 전에 걷어낸 것: 테스트 계정 7행(그중 하나가 실명·실사번 형태) · 테스트 조 98·99 · README 촬영용 demo 60명/10조/문항 8개 · 부하 테스트 계정 `loadtest01~60`.
 
