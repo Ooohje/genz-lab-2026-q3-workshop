@@ -133,6 +133,7 @@ export default function Roster({ pin }) {
             key={t.team_no}
             title={t.name}
             subtitle={`${t.team_no}팀`}
+            teamActive={t.is_active}
             members={data.participants.filter((p) => p.team_no === t.team_no)}
             teams={data.teams}
             onRename={() => {
@@ -141,6 +142,9 @@ export default function Roster({ pin }) {
                 p_team_no: t.team_no, p_name: n, p_is_active: t.is_active, p_ord: t.ord,
               })
             }}
+            onToggleTeam={() => call('admin_upsert_team', {
+              p_team_no: t.team_no, p_name: t.name, p_is_active: !t.is_active, p_ord: t.ord,
+            })}
             onDeleteTeam={() => confirm(`${t.name} 팀을 삭제할까요? 팀원은 배정 대기로 돌아갑니다.`)
               && call('admin_delete_team', { p_team_no: t.team_no })}
             onAddMember={() => addMember(t.team_no)}
@@ -159,14 +163,25 @@ export default function Roster({ pin }) {
 }
 
 function TeamCard({
-  title, subtitle, warn, members, teams,
-  onRename, onDeleteTeam, onAddMember, onAssign, onToggle, onRenameMember, onChangeKnox, onReset, onDelete, busy,
+  title, subtitle, warn, teamActive = true, members, teams,
+  onRename, onToggleTeam, onDeleteTeam, onAddMember, onAssign, onToggle, onRenameMember, onChangeKnox, onReset, onDelete, busy,
 }) {
+  // teamActive=false: 게임 1 시작·스크린·리더보드에서 이 팀이 통째로 빠진다
+  // (admin_start_game1 / get_screen_g1 / get_leaderboard 가 where is_active).
   return (
-    <section className={`flex flex-col gap-[10px] rounded-[18px] p-[14px] ${warn ? 'bg-warn-tint' : 'bg-white'}`}>
+    <section
+      className={`flex flex-col gap-[10px] rounded-[18px] p-[14px] ${
+        !teamActive ? 'bg-surface opacity-60' : warn ? 'bg-warn-tint' : 'bg-white'
+      }`}
+    >
       <div className="flex items-baseline justify-between gap-[6px]">
         <div className="flex min-w-0 flex-col">
-          <span className="truncate text-[13px] font-bold text-ink">{title}</span>
+          <span className="flex items-center gap-[6px] truncate text-[13px] font-bold text-ink">
+            {title}
+            {!teamActive && (
+              <span className="shrink-0 rounded-full bg-line px-[6px] py-[1px] text-[10px] font-bold text-muted">쉼</span>
+            )}
+          </span>
           {subtitle && <span className="num text-[11px] text-muted">{subtitle}</span>}
         </div>
         <span className="num shrink-0 text-[11px] font-bold text-muted">{members.length}명</span>
@@ -252,7 +267,7 @@ function TeamCard({
       </ul>
 
       {(onAddMember || onRename) && (
-        <div className="mt-auto flex gap-[8px] pt-[4px]">
+        <div className="mt-auto flex flex-wrap gap-x-[8px] gap-y-[4px] pt-[4px]">
           {onAddMember && (
             <button
               onClick={onAddMember}
@@ -265,6 +280,15 @@ function TeamCard({
           {onRename && (
             <button onClick={onRename} className="text-[11px] font-bold text-brand hover:underline">
               이름 변경
+            </button>
+          )}
+          {onToggleTeam && (
+            <button
+              onClick={onToggleTeam}
+              disabled={busy}
+              className={`text-[11px] font-bold hover:underline ${teamActive ? 'text-warn-on' : 'text-success-on'}`}
+            >
+              {teamActive ? '오늘 불참' : '복귀'}
             </button>
           )}
           {onDeleteTeam && (
