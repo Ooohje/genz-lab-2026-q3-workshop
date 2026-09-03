@@ -385,16 +385,17 @@ end;
 $fn$;
 
 -- 리허설 초기화 — 게임 기록만 지운다. 명단과 문항은 남긴다.
+-- where true 는 Supabase 의 safeupdate 가드(WHERE 없는 DELETE 차단) 회피용이다. 빼지 말 것.
 create or replace function admin_reset_game(p_pin text)
 returns void
 language plpgsql security definer set search_path = public
 as $fn$
 begin
   if not admin_verify_pin(p_pin) then raise exception 'BAD_PIN'; end if;
-  delete from answers;
-  delete from votes_3t1f;
-  delete from statements;
-  delete from team_g1_state;
+  delete from answers       where true;
+  delete from votes_3t1f    where true;
+  delete from statements     where true;
+  delete from team_g1_state  where true;
   update game_state
      set phase = 'lobby', current_question_id = null, question_started_at = null,
          revealed = false, notice = null, updated_at = now()
@@ -409,11 +410,11 @@ language plpgsql security definer set search_path = public
 as $fn$
 begin
   if not admin_verify_pin(p_pin) then raise exception 'BAD_PIN'; end if;
-  delete from answers;
-  delete from votes_3t1f;
-  delete from statements;
-  delete from team_g1_state;
-  delete from participants;
+  delete from answers       where true;
+  delete from votes_3t1f    where true;
+  delete from statements     where true;
+  delete from team_g1_state  where true;
+  delete from participants   where true;
   update game_state
      set phase = 'lobby', current_question_id = null, question_started_at = null,
          revealed = false, notice = null, updated_at = now()
