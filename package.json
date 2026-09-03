@@ -8,7 +8,8 @@
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "load": "node scripts/load-test.mjs"
+    "load": "node scripts/load-test.mjs",
+    "shoot": "node scripts/shoot.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.58.0",
