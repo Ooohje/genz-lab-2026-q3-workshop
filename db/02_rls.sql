@@ -98,5 +98,20 @@ begin
 end;
 $$;
 
+-- =====================================================================
+-- 생존 신호. 참여자 폰이 화면이 보이는 동안 20초마다 부른다.
+-- 대시보드·스크린의 "접속 중" 은 last_seen 이 45초 안인 사람을 센다.
+-- 로그인은 아니므로 명단에 없는 ID 면 조용히 아무것도 안 한다.
+-- =====================================================================
+create or replace function heartbeat(p_knox_id text)
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  update participants set last_seen = now() where knox_id = lower(trim(coalesce(p_knox_id, '')));
+$$;
+
 grant execute on function join_session(text, text)   to anon, authenticated;
 grant execute on function admin_verify_pin(text)     to anon, authenticated;
+grant execute on function heartbeat(text)            to anon, authenticated;

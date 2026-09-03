@@ -41,7 +41,7 @@ export default function Dashboard({ pin, gameState }) {
     <div className="flex gap-[20px] p-[24px]">
       <div className="flex flex-1 flex-col gap-[20px]">
         <div className="grid grid-cols-4 gap-[14px]">
-          <Metric label="접속" value={d?.joined ?? 0} />
+          <Metric label="접속 중 / 전체" value={`${d?.online ?? 0} / ${d?.joined ?? 0}`} />
           <Metric label="3T1F 작성" value={d?.written ?? 0} />
           <Metric label="완료 팀" value={d?.teams_done ?? 0} />
           <Metric label="배정 대기" value={d?.unassigned ?? 0} warn={(d?.unassigned ?? 0) > 0} />

@@ -104,6 +104,8 @@ $$;
 
 -- ---------------------------------------------------------------------
 -- 전체 작성 현황 (스크린 B1 카운터 · 관리자 대시보드용)
+-- joined_count 는 "접속 중" — 45초 안에 heartbeat 를 보낸 사람. 명단 크기가 아니다.
+-- (admin_dashboard 의 online 과 같은 정의. 바꾸면 둘 다 바꾼다.)
 -- ---------------------------------------------------------------------
 create or replace function get_progress_counts()
 returns table (joined_count bigint, written_count bigint, unassigned_count bigint)
@@ -112,7 +114,8 @@ security definer
 set search_path = public
 as $$
   select
-    (select count(*) from participants where is_active),
+    (select count(*) from participants
+      where is_active and last_seen > now() - interval '45 seconds'),
     (select count(distinct s.knox_id) from statements s
        join participants p on p.knox_id = s.knox_id and p.is_active),
     (select count(*) from participants where is_active and team_no is null);

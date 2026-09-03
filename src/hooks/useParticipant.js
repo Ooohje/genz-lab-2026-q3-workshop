@@ -40,6 +40,13 @@ export function useParticipant(initial, { onGone } = {}) {
 
   const refetch = readOne
 
+  // 생존 신호. last_seen 을 갱신해 대시보드의 "접속 중 N/전체" 가 실시간이 되게 한다.
+  // 화면이 보일 때만 보내므로 폰을 끈 사람은 45초 뒤 접속자에서 빠진다.
+  const beat = useCallback(() => {
+    if (!knoxId || document.visibilityState !== 'visible') return
+    supabase.rpc('heartbeat', { p_knox_id: knoxId }).then(() => {}, () => {})
+  }, [knoxId])
+
   useEffect(() => {
     if (!knoxId) return
     let cancelled = false
@@ -67,28 +74,36 @@ export function useParticipant(initial, { onGone } = {}) {
     connect()
 
     const pull = () => { if (!cancelled) readOne() }
+    // 마운트 직후 한 번 읽는다. localStorage 에 남은 세션이 이미 삭제된 사람이면
+    // 첫 폴링(15초)까지 유령 상태로 화면이 떠 있었다 — 여기서 바로 튕겨낸다.
+    pull()
+    beat()
+
     const resync = () => {
       if (document.visibilityState !== 'visible') return
       pull()
+      beat()
       connect()
     }
     document.addEventListener('visibilitychange', resync)
     window.addEventListener('online', resync)
 
-    // useGameState 와 같은 이유의 폴링 안전망. 조 배정은 phase 전환만큼
+    // useGameState 와 같은 이유의 폴링 안전망. 팀 배정은 phase 전환만큼
     // 급하지 않아 주기를 길게 잡는다.
     const poll = setInterval(() => {
       if (document.visibilityState === 'visible') pull()
     }, 15000)
+    const pulse = setInterval(beat, 20000)
 
     return () => {
       cancelled = true
       clearInterval(poll)
+      clearInterval(pulse)
       document.removeEventListener('visibilitychange', resync)
       window.removeEventListener('online', resync)
       if (channel) supabase.removeChannel(channel)
     }
-  }, [knoxId, readOne])
+  }, [knoxId, readOne, beat])
 
   return { participant, setParticipant: apply, refetch }
 }

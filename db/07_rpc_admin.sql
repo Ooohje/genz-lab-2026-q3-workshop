@@ -92,6 +92,10 @@ begin
     'phase',        (select phase from game_state where id = 1),
     'notice',       (select notice from game_state where id = 1),
     'joined',       (select count(*) from participants where is_active),
+    -- 접속 중 = 45초 안에 heartbeat 를 보낸 사람. 클라이언트가 20초마다 보내므로
+    -- 한 번 놓쳐도 살아 있고, 두 번 놓치면(폰 화면 꺼짐 등) 빠진다.
+    'online',       (select count(*) from participants
+                      where is_active and last_seen > now() - interval '45 seconds'),
     'written',      (select count(distinct s.knox_id) from statements s
                        join participants p on p.knox_id = s.knox_id and p.is_active),
     'unassigned',   (select count(*) from participants where is_active and team_no is null),
