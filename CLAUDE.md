@@ -9,11 +9,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | | 상태 |
 |---|---|
 | 코드 | 8단계 전부 구현, `main` 에 푸시 완료 |
-| 배포 | https://ooohje.github.io/genz-lab-2026-q3-workshop/ (GitHub Actions 자동) |
-| DB | `db/00~07` 전부 적용. RPC 38개 |
+| 배포 | ✅ https://ooohje.github.io/genz-lab-2026-q3-workshop/ — 2026-09-03 첫 성공. 이전까지 `Roster.jsx` 가 `.gitignore` `roster*` 에 걸려 빠지면서 CI 빌드가 6번 연속 깨져 있었다(로컬은 통과) |
+| DB | `db/00~07` 전부 적용. RPC 39개 (`admin_rename_participant` 2026-09-03 추가) |
 | 문서 | `README.md` + `docs/screens/` 실화면 21컷 커밋·푸시 완료 (2026-09-03). 재촬영 스크립트 `npm run screens` (`scripts/capture-screens.mjs`, Playwright) |
-| 검증 완료 | 로그인·정규화 · Realtime(실기기 2대) · **게임 1 턴 전환 4턴 전 구간** · **게임 2 출제~채점~리더보드** · 스크린 RPC 3종 · 관리자 22개 PIN 가드 전수 · RLS 잠금 · **브라우저 실화면 전 구간**(참여자 10컷 · 스크린 5컷 · 관리자 4컷) |
+| 검증 완료 | 로그인·정규화 · Realtime(실기기 2대) · **게임 1 턴 전환 4턴 전 구간** · **게임 2 출제~채점~리더보드** · 스크린 RPC 3종 · 관리자 23개 PIN 가드 전수 · RLS 잠금 · **브라우저 실화면 전 구간**(참여자 10컷 · 스크린 5컷 · 관리자 4컷) · **GitHub Pages 배포** |
 | **미검증** | 실기기 리허설 |
+| **미완** | git 히스토리에 유출된 Knox ID 1건 (커밋 4개 · 아래 참조). 재작성 필요 |
 
 ### 2026-09-02 검증에서 잡은 버그 3건 (전부 수정·적용 완료)
 
@@ -295,7 +296,7 @@ README §13의 미정값 6개 중 현재 상태 (2026-09-01 기준):
 | Supabase Project URL | ✅ `https://xzfecrlzejtjwpvjunkc.supabase.co` |
 | Supabase publishable key | ✅ `sb_publishable_gH8Bq6zz0IzYqlKXdwOeRw_4l4D8rx1` (구 anon key. 프론트에 박혀도 되는 공개 키) |
 | 관리자 PIN | ✅ 설정 완료. **평문은 어디에도 없다** — DB 에 bcrypt 해시로만 존재하고 `db/01_schema.sql` 에는 자리표시자 `'0000'` 이 들어 있다. 값을 물어보거나 파일에 적지 말 것 |
-| GitHub Pages 배포 URL | ⬜ 레포명은 `genz-lab-2026-q3-workshop` 확정, 계정명·배포 미완 |
+| GitHub Pages 배포 URL | ✅ https://ooohje.github.io/genz-lab-2026-q3-workshop/ (2026-09-03 배포 성공) |
 | 명단 CSV (Knox ID, 이름, 조) | ⬜ |
 | 데모 데이터 | 2026-09-03 테스트 잡것·개인정보 제거 후 `teams` 10 · `participants` 60(전부 demo) · `questions` 8 이 남아 있다. 상세는 맨 위 "현재 DB 상태" 참조. 실명단 업로드 전에 `db/00_reset.sql` |
 | 문항 8개 최종본 | ⬜ |
