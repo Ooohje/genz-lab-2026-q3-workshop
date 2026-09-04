@@ -344,6 +344,22 @@ begin
 end;
 $fn$;
 
+-- 문항 순서 재정렬. 프론트가 재배치한 id 배열 전체를 보내면 ord 를 1..n 으로 다시 쓴다.
+-- 배열에 없는 문항이 있으면 그 문항은 뒤로 밀린다(ord 를 큰 값으로).
+create or replace function admin_reorder_questions(p_pin text, p_ids bigint[])
+returns void
+language plpgsql security definer set search_path = public
+as $fn$
+begin
+  if not admin_verify_pin(p_pin) then raise exception 'BAD_PIN'; end if;
+  update questions q set ord = t.pos
+    from unnest(p_ids) with ordinality as t(qid, pos)
+   where q.id = t.qid;
+  -- 배열에 빠진 문항은 맨 뒤로
+  update questions set ord = 1000 + id where id <> all(p_ids);
+end;
+$fn$;
+
 -- 진행 중 안전장치 -----------------------------------------------------
 
 -- 조 단위 / 일괄 강제공개. 15분 시점에 전 조를 끝내는 최후 수단이다.
@@ -438,6 +454,7 @@ grant execute on function admin_upload_roster(text, jsonb)             to anon, 
 grant execute on function admin_list_questions(text)                   to anon, authenticated;
 grant execute on function admin_upsert_question(text, bigint, int, text, text, jsonb, text, int, text, text) to anon, authenticated;
 grant execute on function admin_delete_question(text, bigint)          to anon, authenticated;
+grant execute on function admin_reorder_questions(text, bigint[])      to anon, authenticated;
 grant execute on function admin_force_reveal(text, int)                to anon, authenticated;
 grant execute on function admin_set_notice(text, text)                 to anon, authenticated;
 grant execute on function admin_set_flags(text, boolean, boolean)      to anon, authenticated;

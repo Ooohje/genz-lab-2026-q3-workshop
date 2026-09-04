@@ -52,6 +52,22 @@ export default function Questions({ pin }) {
     await pull()
   }
 
+  // 목록에서 문항을 한 칸 위/아래로. 재배치한 id 순서 전체를 서버에 보낸다.
+  async function move(idx, dir) {
+    const j = idx + dir
+    if (j < 0 || j >= list.length || busy) return
+    const next = list.slice()
+    ;[next[idx], next[j]] = [next[j], next[idx]]
+    setList(next)                       // 낙관적 갱신
+    setBusy(true)
+    const { error } = await supabase.rpc('admin_reorder_questions', {
+      p_pin: pin, p_ids: next.map((q) => q.id),
+    })
+    setBusy(false)
+    if (error) setMsg(error.message)
+    await pull()
+  }
+
   const isMc = draft.type === 'mc'
 
   return (
@@ -68,8 +84,31 @@ export default function Questions({ pin }) {
         </div>
 
         <ul className="flex flex-col gap-[8px]">
-          {list.map((q) => (
-            <li key={q.id}>
+          {list.map((q, idx) => (
+            <li
+              key={q.id}
+              className={`flex items-stretch overflow-hidden rounded-[14px] bg-white ${
+                draft.id === q.id ? 'shadow-[0_0_0_2px_#6A2FF0]' : ''
+              }`}
+            >
+              <div className="flex flex-none flex-col border-r border-line">
+                <button
+                  onClick={() => move(idx, -1)}
+                  disabled={idx === 0 || busy}
+                  title="위로"
+                  className="flex-1 px-[8px] text-[12px] font-bold text-muted hover:bg-surface disabled:opacity-25"
+                >
+                  ↑
+                </button>
+                <button
+                  onClick={() => move(idx, 1)}
+                  disabled={idx === list.length - 1 || busy}
+                  title="아래로"
+                  className="flex-1 border-t border-line px-[8px] text-[12px] font-bold text-muted hover:bg-surface disabled:opacity-25"
+                >
+                  ↓
+                </button>
+              </div>
               <button
                 onClick={() => setDraft({
                   ...q,
@@ -79,9 +118,7 @@ export default function Questions({ pin }) {
                   image_url: q.image_url ?? '',
                   explanation: q.explanation ?? '',
                 })}
-                className={`flex w-full items-center gap-[10px] rounded-[14px] bg-white p-[12px] text-left ${
-                  draft.id === q.id ? 'shadow-[0_0_0_2px_#6A2FF0]' : ''
-                }`}
+                className="flex min-w-0 flex-1 items-center gap-[10px] p-[12px] text-left"
               >
                 <span className="num w-[20px] shrink-0 text-[12px] font-bold text-muted">{q.ord}</span>
                 <span
