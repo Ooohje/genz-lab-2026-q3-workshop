@@ -2,9 +2,9 @@ import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 
 /**
- * C3 — 명단 · 조 편성.
- * 조도 조원도 전부 유동적이다. 조 수와 조당 인원은 기본값일 뿐 고정이 아니다.
- * 용어는 "조"로 통일한다(2026-09-03). DB 컬럼명 team_no 와도 맞는다.
+ * C3 — 명단 · 팀 편성.
+ * 팀도 팀원도 전부 유동적이다. 팀 수와 팀당 인원은 기본값일 뿐 고정이 아니다.
+ * 용어는 "팀"으로 통일한다(2026-09-04). DB 컬럼명 team_no 와도 맞는다.
  */
 export default function Roster({ pin }) {
   const [data, setData] = useState({ teams: [], participants: [] })
@@ -47,9 +47,9 @@ export default function Roster({ pin }) {
     await pull()
   }
 
-  // 조원 한 명을 그 자리에서 추가한다. CSV 업로드와 같은 RPC 를 한 행짜리로 부른다 —
+  // 팀원 한 명을 그 자리에서 추가한다. CSV 업로드와 같은 RPC 를 한 행짜리로 부른다 —
   // 정규화(소문자)·upsert 규칙이 같아야 나중에 CSV 로 덮어써도 어긋나지 않는다.
-  // 이미 있는 Knox ID 면 이름을 갱신하고 이 조로 옮긴다.
+  // 이미 있는 Knox ID 면 이름을 갱신하고 이 팀으로 옮긴다.
   async function addMember(teamNo) {
     const knox = prompt('Knox ID')
     if (!knox || !knox.trim()) return
@@ -81,21 +81,21 @@ export default function Roster({ pin }) {
         </label>
         <button
           onClick={() => {
-            // 조 이름은 쓰지 않는다 — 번호만 받고 이름은 'N조'로 자동 채운다.
+            // 이름은 쓰지 않는다 — 번호만 받고 이름은 'N팀'으로 자동 채운다.
             const nextNo = data.teams.reduce((m, t) => Math.max(m, t.team_no), 0) + 1
-            const no = Number(prompt('조 번호', String(nextNo)))
+            const no = Number(prompt('팀 번호', String(nextNo)))
             if (!no) return
             call('admin_upsert_team', {
-              p_team_no: no, p_name: `${no}조`, p_is_active: true, p_ord: no,
+              p_team_no: no, p_name: `${no}팀`, p_is_active: true, p_ord: no,
             })
           }}
           className="rounded-[12px] bg-surface px-[14px] py-[10px] text-[13px] font-bold text-ink"
         >
-          조 추가
+          팀 추가
         </button>
 
         <span className="num rounded-full bg-white px-[12px] py-[6px] text-[12px] font-bold text-muted">
-          {data.participants.length}명 / {data.teams.length}조
+          {data.participants.length}명 / {data.teams.length}팀
         </span>
         {unassigned.length > 0 && (
           <span className="num rounded-full bg-warn-tint px-[12px] py-[6px] text-[12px] font-bold text-warn-on">
@@ -107,7 +107,7 @@ export default function Roster({ pin }) {
 
       <p className="text-[12px] text-muted">
         CSV 형식: <span className="num">knox_id,name,team_no</span> · Knox ID는 자동으로 소문자로 저장됩니다.
-        게임 1 도중 조를 옮기면 그 사람의 기존 투표는 무효 처리됩니다.
+        게임 1 도중 팀을 옮기면 그 사람의 기존 투표는 무효 처리됩니다.
       </p>
 
       <div className="grid grid-cols-4 gap-[14px]">
@@ -132,12 +132,12 @@ export default function Roster({ pin }) {
           <TeamCard
             key={t.team_no}
             title={t.name}
-            subtitle={`${t.team_no}조`}
+            subtitle={`${t.team_no}팀`}
             teamActive={t.is_active}
             members={data.participants.filter((p) => p.team_no === t.team_no)}
             teams={data.teams}
             onRename={() => {
-              const n = prompt('조 이름', t.name)
+              const n = prompt('팀 이름', t.name)
               if (n) call('admin_upsert_team', {
                 p_team_no: t.team_no, p_name: n, p_is_active: t.is_active, p_ord: t.ord,
               })
@@ -145,7 +145,7 @@ export default function Roster({ pin }) {
             onToggleTeam={() => call('admin_upsert_team', {
               p_team_no: t.team_no, p_name: t.name, p_is_active: !t.is_active, p_ord: t.ord,
             })}
-            onDeleteTeam={() => confirm(`${t.name} 조를 삭제할까요? 조원은 배정 대기로 돌아갑니다.`)
+            onDeleteTeam={() => confirm(`${t.name} 팀을 삭제할까요? 팀원은 배정 대기로 돌아갑니다.`)
               && call('admin_delete_team', { p_team_no: t.team_no })}
             onAddMember={() => addMember(t.team_no)}
             onAssign={(k, tn) => call('admin_assign', { p_knox_id: k, p_team_no: tn })}
@@ -166,7 +166,7 @@ function TeamCard({
   title, subtitle, warn, teamActive = true, members, teams,
   onRename, onToggleTeam, onDeleteTeam, onAddMember, onAssign, onToggle, onRenameMember, onChangeKnox, onReset, onDelete, busy,
 }) {
-  // teamActive=false: 게임 1 시작·스크린·리더보드에서 이 조가 통째로 빠진다
+  // teamActive=false: 게임 1 시작·스크린·리더보드에서 이 팀이 통째로 빠진다
   // (admin_start_game1 / get_screen_g1 / get_leaderboard 가 where is_active).
   return (
     <section
@@ -274,7 +274,7 @@ function TeamCard({
               disabled={busy}
               className="text-[11px] font-bold text-brand hover:underline"
             >
-              + 조원
+              + 팀원
             </button>
           )}
           {onRename && (
@@ -293,7 +293,7 @@ function TeamCard({
           )}
           {onDeleteTeam && (
             <button onClick={onDeleteTeam} className="text-[11px] font-bold text-fake hover:underline">
-              조 삭제
+              팀 삭제
             </button>
           )}
         </div>

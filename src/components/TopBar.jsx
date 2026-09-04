@@ -2,7 +2,7 @@ import { clearSession } from '../lib/session'
 
 /**
  * README §5 — 상단 고정 바.
- * 참여자 전 화면에 예외 없이 표시한다. 이름과 조가 항상 보여야
+ * 참여자 전 화면에 예외 없이 표시한다. 이름과 팀이 항상 보여야
  * 잘못 매칭된 사람이 스스로 알아채고 진행자에게 문의할 수 있다.
  *
  * 오른쪽 Knox ID 는 로그아웃 버튼이다. 남의 폰으로 잘못 들어왔거나 다른 ID 로
@@ -16,11 +16,11 @@ function logout() {
 
 export default function TopBar({ participant, teamName, right, dark = false }) {
   const waiting = participant?.team_no == null
-  // 조 이름만 보여준다. 번호를 앞에 붙이면 자동 이름('N조')과 겹쳐 '1조 1조'가 된다.
+  // 팀 이름만 보여준다. 번호를 앞에 붙이면 자동 이름('N팀')과 겹쳐 '1팀 1팀'이 된다.
   // 이름이 아직 안 왔으면(teams 조회 전) 번호로 잠깐 대신한다.
   const chip = waiting
-    ? '조 배정 대기'
-    : (teamName ?? `${participant.team_no}조`)
+    ? '팀 배정 대기'
+    : (teamName ?? `${participant.team_no}팀`)
 
   return (
     <header

@@ -20,7 +20,7 @@ export default function Game2({ participant, teamName, gameState }) {
           <div className="h-[56px] w-[56px] animate-bob rounded-[20px] bg-white/10" />
           {starting ? (
             <>
-              <p className="text-[22px] font-bold text-white">조 대항 퀴즈를 시작합니다</p>
+              <p className="text-[22px] font-bold text-white">팀 대항 퀴즈를 시작합니다</p>
               <p className="text-[14px] text-white/60">곧 첫 문제가 나옵니다. 화면을 봐 주세요.</p>
             </>
           ) : (

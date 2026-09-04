@@ -9,7 +9,7 @@ const LABELS = ['A', 'B', 'C', 'D']
  * A11 — 발표자 본인 화면. 배경 brand-deep 전면.
  * 본인 문장은 보여주되 투표는 못 한다.
  * [다음으로 넘기기]는 미투표자를 기권 처리하는 수동 백업이다
- * (조원 1명이 폰을 안 봐도 조가 막히지 않게).
+ * (팀원 1명이 폰을 안 봐도 팀이 막히지 않게).
  */
 export default function MyTurn({ participant, view, elapsed, onAdvanced }) {
   const [busy, setBusy] = useState(false)
@@ -33,7 +33,7 @@ export default function MyTurn({ participant, view, elapsed, onAdvanced }) {
         <div className="flex flex-col gap-[6px]">
           <h1 className="text-[34px] font-bold tracking-[-0.02em] text-brand-lime">내 차례!</h1>
           <p className="text-[15px] leading-[1.6] text-white/80">
-            아래 4문장을 말로 설명하세요.<br />조원들이 어느 것이 거짓인지 고릅니다.
+            아래 4문장을 말로 설명하세요.<br />팀원들이 어느 것이 거짓인지 고릅니다.
           </p>
         </div>
 

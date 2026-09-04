@@ -3,7 +3,7 @@ import BottomBar from '../../components/BottomBar'
 import Cta from '../../components/Cta'
 import WriteTimerBanner from '../../components/WriteTimerBanner'
 
-/** A6 — 로비. 게임 1 시작을 기다리며 조원 작성 현황을 본다. */
+/** A6 — 로비. 게임 1 시작을 기다리며 팀원 작성 현황을 본다. */
 export default function Lobby({ participant, teamName, roster, onEditStatements }) {
   const done = roster.filter((r) => r.has_statements).length
 
@@ -22,7 +22,7 @@ export default function Lobby({ participant, teamName, roster, onEditStatements 
         </div>
 
         <div className="flex items-baseline justify-between">
-          <span className="text-[13px] font-semibold text-muted">우리 조 작성 현황</span>
+          <span className="text-[13px] font-semibold text-muted">우리 팀 작성 현황</span>
           <span className="num text-[13px] font-bold text-ink">{done}/{roster.length}</span>
         </div>
 

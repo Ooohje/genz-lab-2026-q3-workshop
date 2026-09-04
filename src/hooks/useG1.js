@@ -5,9 +5,9 @@ import { noteServerTime, serverNow } from '../lib/clock'
 /**
  * 게임 1 상태. get_g1_view 하나로 화면에 필요한 모든 것을 받는다.
  *
- * 조별 진행이라 game_state Realtime 으로는 턴 전환을 알 수 없다(조마다 다르다).
+ * 팀별 진행이라 game_state Realtime 으로는 턴 전환을 알 수 없다(팀마다 다르다).
  * 그래서 2초 폴링으로 따라간다. 서버가 폴링 때마다 턴 전환 판정을 함께
- * 수행하므로, 발표자 폰이 죽어도 다른 조원의 폴링이 턴을 넘겨준다.
+ * 수행하므로, 발표자 폰이 죽어도 다른 팀원의 폴링이 턴을 넘겨준다.
  */
 export function useG1(knoxId, { enabled = true } = {}) {
   const [view, setView] = useState(null)

@@ -23,7 +23,7 @@ export default function AdminView() {
 
   const TABS = [
     ['dashboard', '대시보드'],
-    ['roster', '명단 · 조 편성'],
+    ['roster', '명단 · 팀 편성'],
     ['questions', '문항 관리'],
   ]
 

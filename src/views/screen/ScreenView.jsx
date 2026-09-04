@@ -105,7 +105,7 @@ function G1Board() {
   }, [])
 
   const doneCount = teams.filter((t) => t.phase === 'done').length
-  // 진행이 뒤처진 조를 반전 표시해 진행자가 콕 집어 독촉할 수 있게 한다.
+  // 진행이 뒤처진 팀을 반전 표시해 진행자가 콕 집어 독촉할 수 있게 한다.
   const lagging = teams.filter((t) => t.phase !== 'done' && t.elapsed > 150)
 
   return (
@@ -113,7 +113,7 @@ function G1Board() {
       <div className="flex items-end justify-between">
         <h1 className="text-[72px] font-bold tracking-[-0.03em] text-white">게임 1 진행 중</h1>
         <div className="flex gap-[20px]">
-          <Pill label="완료한 조" value={`${doneCount}/${teams.length}`} />
+          <Pill label="완료한 팀" value={`${doneCount}/${teams.length}`} />
         </div>
       </div>
 
@@ -168,7 +168,7 @@ function Pill({ label, value }) {
 /**
  * 게임 2 대기. 게임 1 뒤 쉬는 시간에 늦게 오는 사람이 있어서 QR 을 함께 띄운다.
  * 이때 들어온 사람은 다음 문제부터 바로 풀 수 있고, 점수 분모는 응답자 기준이라
- * 늦게 들어와도 조 평균을 깎지 않는다.
+ * 늦게 들어와도 팀 평균을 깎지 않는다.
  */
 function Standby() {
   const { qr, url } = useEntryQr()
@@ -373,7 +373,7 @@ function Leaderboard({ final }) {
           </div>
         ))}
         <p className="mt-auto text-[24px] leading-[1.5] text-white/50">
-          조 점수 = 조원 개인 점수 합 ÷ 실제 응답 조원 수
+          팀 점수 = 팀원 개인 점수 합 ÷ 실제 응답 팀원 수
         </p>
       </div>
     </div>

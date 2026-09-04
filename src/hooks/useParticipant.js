@@ -4,7 +4,7 @@ import { saveSession } from '../lib/session'
 
 /**
  * 본인 participants 행을 구독한다.
- * 관리자가 조를 옮기면 그 즉시 이 참여자의 화면이 새 조로 바뀌어야 한다(기획서 §3.3).
+ * 관리자가 팀을 옮기면 그 즉시 이 참여자의 화면이 새 팀으로 바뀌어야 한다(기획서 §3.3).
  * 채널 이름 규칙은 useGameState 와 동일하다 — 매번 유니크하게.
  *
  * onGone 은 내 행이 정말로 사라졌을 때만 불린다(관리자가 오타 난 ID 를 지운 경우).
@@ -88,7 +88,7 @@ export function useParticipant(initial, { onGone } = {}) {
     document.addEventListener('visibilitychange', resync)
     window.addEventListener('online', resync)
 
-    // useGameState 와 같은 이유의 폴링 안전망. 조 배정은 phase 전환만큼
+    // useGameState 와 같은 이유의 폴링 안전망. 팀 배정은 phase 전환만큼
     // 급하지 않아 주기를 길게 잡는다.
     const poll = setInterval(() => {
       if (document.visibilityState === 'visible') pull()

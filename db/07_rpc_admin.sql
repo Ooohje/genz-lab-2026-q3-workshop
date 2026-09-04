@@ -7,7 +7,7 @@
 -- =====================================================================
 
 -- ---------------------------------------------------------------------
--- B2 — 조별 게임 1 진행 현황판
+-- B2 — 팀별 게임 1 진행 현황판
 -- ---------------------------------------------------------------------
 create or replace function get_screen_g1()
 returns jsonb
@@ -81,7 +81,7 @@ $fn$;
 -- 관리자
 -- =====================================================================
 
--- C2 대시보드 — 지표 + 조별 진행률 + 배정 대기자
+-- C2 대시보드 — 지표 + 팀별 진행률 + 배정 대기자
 create or replace function admin_dashboard(p_pin text)
 returns jsonb
 language plpgsql security definer set search_path = public
@@ -111,7 +111,7 @@ begin
 end;
 $fn$;
 
--- C3 명단·조 편성 -------------------------------------------------------
+-- C3 명단·팀 편성 -------------------------------------------------------
 create or replace function admin_roster(p_pin text)
 returns jsonb
 language plpgsql security definer set search_path = public
@@ -151,7 +151,7 @@ language plpgsql security definer set search_path = public
 as $fn$
 begin
   if not admin_verify_pin(p_pin) then raise exception 'BAD_PIN'; end if;
-  -- 조원은 지우지 않고 배정 대기로 되돌린다.
+  -- 팀원은 지우지 않고 배정 대기로 되돌린다.
   update participants set team_no = null where team_no = p_team_no;
   delete from teams where team_no = p_team_no;
 end;
@@ -163,7 +163,7 @@ language plpgsql security definer set search_path = public
 as $fn$
 begin
   if not admin_verify_pin(p_pin) then raise exception 'BAD_PIN'; end if;
-  -- 게임 1 도중 조를 옮기면 기존 조에서의 투표·피투표는 무효 처리한다(기획서 §3.3).
+  -- 게임 1 도중 팀을 옮기면 기존 팀에서의 투표·피투표는 무효 처리한다(기획서 §3.3).
   delete from votes_3t1f
    where voter_knox = lower(trim(p_knox_id)) or target_knox = lower(trim(p_knox_id));
   update participants set team_no = p_team_no where knox_id = lower(trim(p_knox_id));
@@ -271,9 +271,9 @@ declare r jsonb; n int := 0;
 begin
   if not admin_verify_pin(p_pin) then raise exception 'BAD_PIN'; end if;
 
-  -- CSV 에 등장하는 조 번호를 먼저 만들어 둔다.
+  -- CSV 에 등장하는 팀 번호를 먼저 만들어 둔다.
   insert into teams (team_no, name, ord)
-  select distinct (x->>'team_no')::int, (x->>'team_no') || '조', (x->>'team_no')::int
+  select distinct (x->>'team_no')::int, (x->>'team_no') || '팀', (x->>'team_no')::int
     from jsonb_array_elements(p_rows) x
    where coalesce(x->>'team_no', '') <> ''
   on conflict (team_no) do nothing;
@@ -362,7 +362,7 @@ $fn$;
 
 -- 진행 중 안전장치 -----------------------------------------------------
 
--- 조 단위 / 일괄 강제공개. 15분 시점에 전 조를 끝내는 최후 수단이다.
+-- 팀 단위 / 일괄 강제공개. 15분 시점에 전 팀을 끝내는 최후 수단이다.
 create or replace function admin_force_reveal(p_pin text, p_team_no int default null)
 returns void
 language plpgsql security definer set search_path = public

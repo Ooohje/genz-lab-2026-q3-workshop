@@ -72,7 +72,7 @@ export default function ParticipantApp() {
   const canWriteStatements = phase === 'lobby' || phase === 'game1' || phase === 'game1_reveal'
 
   // --- 3T1F 작성 ------------------------------------------------------
-  // 도착 직후 바로 작성하게 한다(기획서 §4.1). 조 배정 전에도 쓸 수 있다.
+  // 도착 직후 바로 작성하게 한다(기획서 §4.1). 팀 배정 전에도 쓸 수 있다.
   if ((!hasStatements || editingStatements) && canWriteStatements) {
     return wrap(
       <StatementForm
@@ -87,7 +87,7 @@ export default function ParticipantApp() {
     )
   }
 
-  // --- 조 배정 대기 ---------------------------------------------------
+  // --- 팀 배정 대기 ---------------------------------------------------
   if (participant.team_no == null) {
     return wrap(
       <TeamWait

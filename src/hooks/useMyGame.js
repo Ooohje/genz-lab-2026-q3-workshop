@@ -2,10 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
 /**
- * 내 3T1F 문장 + 우리 조 명단(작성 현황 포함) + 조 이름.
+ * 내 3T1F 문장 + 우리 팀 명단(작성 현황 포함) + 팀 이름.
  *
  * statements 는 RLS 로 잠겨 있어 직접 select 할 수 없다. 전부 RPC 로 읽는다.
- * 조원 작성 현황은 남의 폰에서 벌어지는 일이라 Realtime 구독 대신
+ * 팀원 작성 현황은 남의 폰에서 벌어지는 일이라 Realtime 구독 대신
  * 짧은 폴링으로 따라간다(기획서 §8 에서 3~5초 폴링을 허용한다).
  */
 export function useMyGame(participant) {

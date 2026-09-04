@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 
-/** A2 — 미등록자 이름 입력. 이름만 넣으면 조 배정 대기 상태로 입장한다. */
+/** A2 — 미등록자 이름 입력. 이름만 넣으면 팀 배정 대기 상태로 입장한다. */
 export default function NameEntry({ knoxId, onJoined, onBack }) {
   const [name, setName] = useState('')
   const [busy, setBusy] = useState(false)
@@ -56,13 +56,13 @@ export default function NameEntry({ knoxId, onJoined, onBack }) {
             className="h-[58px] rounded-[16px] border-2 border-brand bg-white px-[18px] text-[19px] font-semibold text-ink outline-none placeholder:text-[#C4C2CE]"
           />
           <p className="text-[12px] text-[#9A98A6]">
-            사번 <span className="num">{knoxId}</span> · 진행자가 조를 배정합니다
+            사번 <span className="num">{knoxId}</span> · 진행자가 팀을 배정합니다
           </p>
           {error && <p className="text-[13px] font-semibold text-fake">{error}</p>}
         </div>
 
         <p className="rounded-[18px] border border-[#FFD9D5] bg-fake-tint p-[16px] text-[13px] leading-[1.6] text-[#A8271B]">
-          이름을 넣으면 바로 입장해 3T1F 작성을 시작할 수 있습니다. 조 배정은 그 사이에 진행됩니다.
+          이름을 넣으면 바로 입장해 3T1F 작성을 시작할 수 있습니다. 팀 배정은 그 사이에 진행됩니다.
         </p>
       </div>
 
