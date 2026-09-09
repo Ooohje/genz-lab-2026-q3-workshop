@@ -21,6 +21,10 @@ export default function Game2({ participant, teamName, gameState }) {
           {starting ? (
             <>
               <p className="text-[22px] font-bold text-white">팀 대항 퀴즈를 시작합니다</p>
+              <p className="text-[14px] leading-[1.6] text-white/60">
+                팀원이 함께 참여하는 게임이에요. 팀 점수는 팀원 점수의 평균으로
+                매겨지니, 한 명도 빠짐없이 문제에 답해 주세요.
+              </p>
               <p className="text-[14px] text-white/60">곧 첫 문제가 나옵니다. 화면을 봐 주세요.</p>
             </>
           ) : (
