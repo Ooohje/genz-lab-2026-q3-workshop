@@ -60,9 +60,15 @@ export default function StatementForm({ participant, teamName, existing, onSaved
       <WriteTimerBanner />
 
       <div className="flex flex-1 flex-col gap-[14px] overflow-y-auto p-[22px_20px]">
-        <div className="flex flex-col gap-[4px]">
+        <div className="flex flex-col gap-[8px]">
           <h1 className="text-[24px] font-bold tracking-[-0.02em] text-ink">내 문장 만들기</h1>
-          <p className="text-[13px] text-muted">진실 3개 + 거짓 1개. 저장하면 순서가 섞입니다.</p>
+          <p className="text-[13px] leading-[1.6] text-muted">
+            게임 1은 팀원을 알아가는 시간이에요. 여기 적은 문장으로 이름과 소속을 넣어
+            자기소개를 하면, 나머지 팀원은 그중 무엇이 거짓인지 맞히면 됩니다.
+          </p>
+          <p className="text-[13px] leading-[1.6] text-muted">
+            진실 3개 + 거짓 1개를 적어 주세요. 저장하면 순서가 섞입니다.
+          </p>
         </div>
 
         {truths.map((value, i) => (
