@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase'
 export default function Dashboard({ pin, gameState }) {
   const [d, setD] = useState(null)
   const [questions, setQuestions] = useState([])
+  const [dinner, setDinner] = useState(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const [notice, setNotice] = useState('')
@@ -12,12 +13,14 @@ export default function Dashboard({ pin, gameState }) {
   const writeOn = gameState?.write_started_at != null
 
   const pull = useCallback(async () => {
-    const [dash, qs] = await Promise.all([
+    const [dash, qs, din] = await Promise.all([
       supabase.rpc('admin_dashboard', { p_pin: pin }),
       supabase.rpc('admin_list_questions', { p_pin: pin }),
+      supabase.rpc('admin_dinner_tally', { p_pin: pin }),
     ])
     if (dash.data) setD(dash.data)
     if (qs.data) setQuestions(qs.data)
+    if (din.data) setDinner(din.data)
   }, [pin])
 
   useEffect(() => {
@@ -173,6 +176,33 @@ export default function Dashboard({ pin, gameState }) {
           ))}
         </Panel>
 
+        <Panel title="석식 참석 집계">
+          {dinner ? (
+            <>
+              <div className="grid grid-cols-3 gap-[8px]">
+                <MiniStat label="참석" value={dinner.yes ?? 0} />
+                <MiniStat label="미참석" value={dinner.no ?? 0} />
+                <MiniStat label="미응답" value={dinner.not_yet ?? 0} warn={(dinner.not_yet ?? 0) > 0} />
+              </div>
+              <p className="text-[11px] text-muted">활성 참여자 {dinner.total_active ?? 0}명 기준</p>
+              <details>
+                <summary className="cursor-pointer text-[11px] font-bold text-brand">참석자 명단</summary>
+                <p className="mt-[4px] text-[11px] leading-[1.6] text-ink">
+                  {(dinner.yes_list ?? []).map((x) => x.name).join(', ') || '—'}
+                </p>
+              </details>
+              <details>
+                <summary className="cursor-pointer text-[11px] font-bold text-brand">미참석자 명단</summary>
+                <p className="mt-[4px] text-[11px] leading-[1.6] text-ink">
+                  {(dinner.no_list ?? []).map((x) => x.name).join(', ') || '—'}
+                </p>
+              </details>
+            </>
+          ) : (
+            <p className="text-[12px] text-muted">불러오는 중…</p>
+          )}
+        </Panel>
+
         <Panel title="공지 배너">
           <textarea
             value={notice}
@@ -200,6 +230,13 @@ export default function Dashboard({ pin, gameState }) {
             리허설 초기화
           </Btn>
           <Btn
+            tone="ghost"
+            onClick={() => confirm('석식 참석 응답을 모두 지웁니다. 명단은 남습니다.')
+              && call('admin_reset_dinner')}
+          >
+            석식 응답 초기화
+          </Btn>
+          <Btn
             tone="fake"
             onClick={() => confirm('참여자 명단까지 전부 삭제합니다. 행사 종료 후에만 쓰세요.')
               && confirm('정말 삭제할까요? 되돌릴 수 없습니다.')
@@ -212,6 +249,15 @@ export default function Dashboard({ pin, gameState }) {
           </p>
         </Panel>
       </div>
+    </div>
+  )
+}
+
+function MiniStat({ label, value, warn }) {
+  return (
+    <div className={`flex flex-col gap-[2px] rounded-[12px] p-[10px] ${warn ? 'bg-warn-tint' : 'bg-surface'}`}>
+      <span className={`text-[10px] font-semibold ${warn ? 'text-warn-on' : 'text-muted'}`}>{label}</span>
+      <span className="num text-[18px] font-bold text-ink">{value}</span>
     </div>
   )
 }

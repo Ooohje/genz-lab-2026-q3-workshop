@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import ParticipantApp from './views/participant/ParticipantApp'
 import ScreenView from './views/screen/ScreenView'
 import AdminView from './views/admin/AdminView'
+import DinnerView from './views/dinner/DinnerView'
 
 /**
  * 해시 라우터.
@@ -23,5 +24,6 @@ export default function App() {
   const route = useHashRoute()
   if (route.startsWith('/screen')) return <ScreenView />
   if (route.startsWith('/admin')) return <AdminView />
+  if (route.startsWith('/dinner')) return <DinnerView />
   return <ParticipantApp />
 }
