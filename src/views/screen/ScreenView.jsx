@@ -1,11 +1,30 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import QRCode from 'qrcode'
 import { supabase } from '../../lib/supabase'
 import { useGameState } from '../../hooks/useGameState'
 import { useRemaining } from '../../hooks/useQuestion'
 import { noteServerTime } from '../../lib/clock'
+import {
+  soundChime,
+  soundDing,
+  soundEnable,
+  soundIsEnabled,
+  soundIsMuted,
+  soundSetBed,
+  soundSetMuted,
+  soundTick,
+  soundWanted,
+} from '../../lib/sound'
 import Timer from '../../components/Timer'
 import WriteTimerBanner from '../../components/WriteTimerBanner'
+
+/** phase → 배경 베드 이름. */
+function bedFor(phase) {
+  if (phase === 'lobby') return 'lobby'
+  if (phase === 'game1' || phase === 'game1_reveal') return 'game1'
+  if (phase === 'game2_wait' || phase === 'game2_question' || phase === 'game2_answer') return 'game2'
+  return 'leaderboard'
+}
 
 /**
  * 빔프로젝터용 스크린 뷰 (#/screen). 기준 해상도 1920 × 1080.
@@ -19,13 +38,73 @@ export default function ScreenView() {
   const override = new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('phase')
   const phase = override ?? gameState?.phase ?? 'lobby'
 
-  if (phase === 'lobby') return <Entry />
-  if (phase === 'game1' || phase === 'game1_reveal') return <G1Board />
-  if (phase === 'game2_wait') return <Standby />
-  if (phase === 'game2_question' || phase === 'game2_answer') {
-    return <QuestionBoard gameState={gameState} />
+  return (
+    <>
+      <SoundControl phase={phase} />
+      {phase === 'lobby' ? (
+        <Entry />
+      ) : phase === 'game1' || phase === 'game1_reveal' ? (
+        <G1Board />
+      ) : phase === 'game2_wait' ? (
+        <Standby />
+      ) : phase === 'game2_question' || phase === 'game2_answer' ? (
+        <QuestionBoard gameState={gameState} />
+      ) : (
+        <Leaderboard final={phase === 'final'} />
+      )}
+    </>
+  )
+}
+
+/**
+ * 빔프로젝터 소리. 자동재생 차단 때문에 운영자가 한 번 클릭해야 시작된다.
+ *  - 우측 하단 고정 알약. 꺼짐 → 클릭하면 켜짐, 켜진 뒤 클릭은 음소거 토글.
+ *  - 전에 켠 적이 있으면(soundWanted) 화면 아무 데나 첫 클릭에서 자동으로 살아난다.
+ *  - 여기서 phase → 배경 베드 전환도 건다.
+ */
+function SoundControl({ phase }) {
+  const [on, setOn] = useState(() => soundIsEnabled())
+  const [muted, setMuted] = useState(() => soundIsMuted())
+
+  // 이전에 켠 적 있으면 첫 사용자 제스처에서 되살린다.
+  useEffect(() => {
+    if (!soundWanted() || soundIsEnabled()) return
+    const wake = async () => {
+      const ok = await soundEnable()
+      if (ok) setOn(true)
+      document.removeEventListener('pointerdown', wake)
+    }
+    document.addEventListener('pointerdown', wake)
+    return () => document.removeEventListener('pointerdown', wake)
+  }, [])
+
+  // phase 가 바뀌면 베드 전환. enable 전이면 sound.js 가 이름만 기억한다.
+  useEffect(() => {
+    soundSetBed(bedFor(phase))
+  }, [phase])
+
+  async function click() {
+    if (!on) {
+      const ok = await soundEnable()
+      setOn(ok)
+      if (ok) soundSetBed(bedFor(phase))
+      return
+    }
+    const next = !muted
+    soundSetMuted(next)
+    setMuted(next)
   }
-  return <Leaderboard final={phase === 'final'} />
+
+  const label = !on ? '🔇 소리 켜기' : muted ? '🔈 음소거 해제' : '🔊 소리 켜짐'
+
+  return (
+    <button
+      onClick={click}
+      className="fixed bottom-[24px] right-[24px] z-50 rounded-full bg-black/40 px-[24px] py-[14px] text-[24px] font-bold text-white/90 backdrop-blur-sm hover:bg-black/60"
+    >
+      {label}
+    </button>
+  )
 }
 
 /** 입장 QR. 로비(B1)와 게임 2 대기 화면이 같이 쓴다 — 늦게 온 사람이 어느 단계에서든 들어올 수 있게. */
@@ -196,6 +275,7 @@ const OPTION_FG = ['text-white', 'text-[#3D2600]', 'text-white', 'text-white']
 function QuestionBoard({ gameState }) {
   const [q, setQ] = useState(null)
   const remaining = useRemaining(q?.started_at, q?.time_limit_sec)
+  const cuedRef = useRef({}) // { [qid]: { ticks:Set, ding:bool, chime:bool } }
 
   useEffect(() => {
     const pull = () =>
@@ -208,6 +288,31 @@ function QuestionBoard({ gameState }) {
     const id = setInterval(pull, 1000)
     return () => clearInterval(id)
   }, [gameState?.current_question_id, gameState?.revealed])
+
+  // 카운트다운 틱(마지막 3·2·1초) + 시간 종료 "땡". 문항당 1회. 정답 공개 전에만.
+  useEffect(() => {
+    if (!soundIsEnabled() || !q || q.state !== 'ok' || q.revealed) return
+    const st = (cuedRef.current[q.id] ??= { ticks: new Set(), ding: false, chime: false })
+    const sec = Math.ceil(remaining)
+    if (sec >= 1 && sec <= 3 && !st.ticks.has(sec)) {
+      st.ticks.add(sec)
+      soundTick()
+    }
+    if (remaining <= 0 && !st.ding) {
+      st.ding = true
+      soundDing()
+    }
+  }, [remaining, q])
+
+  // 정답이 공개되는 순간 짧은 차임 1회.
+  useEffect(() => {
+    if (!soundIsEnabled() || !q || !q.revealed) return
+    const st = (cuedRef.current[q.id] ??= { ticks: new Set(), ding: false, chime: false })
+    if (!st.chime) {
+      st.chime = true
+      soundChime()
+    }
+  }, [q])
 
   if (!q || q.state !== 'ok') return <Standby />
   if (q.revealed) return <AnswerBoard q={q} />
