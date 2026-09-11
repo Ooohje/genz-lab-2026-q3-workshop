@@ -14,12 +14,14 @@
 
 const LS_KEY = 'genzlab.sound' // 'on' 이면 다음 로드에서도 소리를 원함(클릭은 여전히 필요)
 
-// 베드 이름 → mp3 경로 + 목표 볼륨. 파일은 public/sound/<name>.mp3 에 넣는다.
+// 베드 이름 → mp3 경로 + 목표 볼륨. 파일은 public/sound/ 에 둔다.
+// 지금은 사용자가 준 한 곡(bgm.mp3)을 전 구간에 재사용하고, 구간별로 볼륨만
+// 다르게 준다 — 게임 1 은 팀원끼리 대화 중이라 아주 작게(public/sound/README 참고).
 const BEDS = {
-  lobby: { src: './sound/lobby.mp3', vol: 0.3 },
-  game1: { src: './sound/game1.mp3', vol: 0.1 },
-  game2: { src: './sound/game2.mp3', vol: 0.22 },
-  leaderboard: { src: './sound/leaderboard.mp3', vol: 0.38 },
+  lobby: { src: './sound/bgm.mp3', vol: 0.3 },
+  game1: { src: './sound/bgm.mp3', vol: 0.1 },
+  game2: { src: './sound/bgm.mp3', vol: 0.22 },
+  leaderboard: { src: './sound/bgm.mp3', vol: 0.38 },
 }
 
 let ctx = null
