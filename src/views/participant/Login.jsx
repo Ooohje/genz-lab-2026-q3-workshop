@@ -48,7 +48,7 @@ export default function Login({ onJoined, onNeedName }) {
         </div>
         <div className="text-[15px] font-semibold text-[#CBB4FF]">2026년 3분기 워크샵</div>
         <h1 className="mt-[18px] text-[42px] font-bold leading-[1.15] tracking-[-0.03em] text-white">
-          진실 셋,<br />거짓 하나.
+          팀빌딩 세션
         </h1>
         <p className="text-[15px] font-normal leading-[1.6] text-[#D5C6FF]">
           Knox ID만 입력하면 바로 입장합니다.

@@ -62,7 +62,7 @@ export default function NameEntry({ knoxId, onJoined, onBack }) {
         </div>
 
         <p className="rounded-[18px] border border-[#FFD9D5] bg-fake-tint p-[16px] text-[13px] leading-[1.6] text-[#A8271B]">
-          이름을 넣으면 바로 입장해 3T1F 작성을 시작할 수 있습니다. 팀 배정은 그 사이에 진행됩니다.
+          이름을 넣으면 바로 입장합니다. 팀 배정은 그 사이에 진행됩니다.
         </p>
       </div>
 
