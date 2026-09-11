@@ -145,11 +145,14 @@ function Entry() {
           팀빌딩 세션
         </h1>
 
-        <p className="max-w-[880px] text-[28px] font-medium leading-[1.6] text-[#D5C6FF]">
-          게임 1 — 팀 안에서 돌아가며 자기소개를 하면, 나머지 팀원이 거짓 하나를 찾아요.
-          <br />
-          게임 2 — 전체 팀 대항 퀴즈. 팀원 평균 점수로 순위를 매겨요.
-        </p>
+        <div className="flex flex-col gap-[6px]">
+          <p className="whitespace-nowrap text-[28px] font-medium leading-[1.6] text-[#D5C6FF]">
+            게임 1 — 팀원끼리 자기소개하며 거짓 하나를 찾아요.
+          </p>
+          <p className="whitespace-nowrap text-[28px] font-medium leading-[1.6] text-[#D5C6FF]">
+            게임 2 — 전체 팀 대항 퀴즈. 팀원 평균 점수로 순위를 매겨요.
+          </p>
+        </div>
 
         <div className="flex items-center gap-[24px]">
           <Counter label="접속 중" value={counts.joined_count} />
