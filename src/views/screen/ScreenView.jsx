@@ -142,8 +142,14 @@ function Entry() {
         </div>
 
         <h1 className="text-[108px] font-bold leading-[1.08] tracking-[-0.03em] text-white">
-          진실 셋,<br />거짓 하나.
+          팀빌딩 세션
         </h1>
+
+        <p className="max-w-[880px] text-[28px] font-medium leading-[1.6] text-[#D5C6FF]">
+          게임 1 — 팀 안에서 돌아가며 자기소개를 하면, 나머지 팀원이 거짓 하나를 찾아요.
+          <br />
+          게임 2 — 전체 팀 대항 퀴즈. 팀원 평균 점수로 순위를 매겨요.
+        </p>
 
         <div className="flex items-center gap-[24px]">
           <Counter label="접속 중" value={counts.joined_count} />
@@ -289,12 +295,12 @@ function QuestionBoard({ gameState }) {
     return () => clearInterval(id)
   }, [gameState?.current_question_id, gameState?.revealed])
 
-  // 카운트다운 틱(마지막 3·2·1초) + 시간 종료 "땡". 문항당 1회. 정답 공개 전에만.
+  // 카운트다운 틱(마지막 7초부터 매초) + 시간 종료 "땡". 문항당 1회. 정답 공개 전에만.
   useEffect(() => {
     if (!soundIsEnabled() || !q || q.state !== 'ok' || q.revealed) return
     const st = (cuedRef.current[q.id] ??= { ticks: new Set(), ding: false, chime: false })
     const sec = Math.ceil(remaining)
-    if (sec >= 1 && sec <= 3 && !st.ticks.has(sec)) {
+    if (sec >= 1 && sec <= 7 && !st.ticks.has(sec)) {
       st.ticks.add(sec)
       soundTick()
     }
