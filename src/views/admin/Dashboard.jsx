@@ -254,12 +254,12 @@ export default function Dashboard({ pin, gameState }) {
                 활성 참여자 {bestTeam.total_active ?? 0}명 중 {bestTeam.voted ?? 0}명 투표 ·
                 미투표 {bestTeam.not_yet ?? 0}명
               </p>
+              {/* 득표수는 여기서도 안 보여준다 — 등수(순서)만. 관리자도 예외 없음. */}
               <div className="flex flex-col gap-[4px]">
                 {(bestTeam.counts ?? []).map((c, i) => (
                   <div key={c.choice} className="flex items-center gap-[8px] text-[12px]">
                     <span className="num w-[18px] shrink-0 text-muted">{i + 1}</span>
                     <span className="flex-1 truncate font-semibold text-ink">{c.label}</span>
-                    <span className="num font-bold text-ink">{c.n}표</span>
                   </div>
                 ))}
               </div>
