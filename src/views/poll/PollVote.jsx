@@ -21,14 +21,18 @@ export default function PollVote({ poll, participant }) {
     let alive = true
     supabase
       .from('teams')
-      .select('team_no, name, is_active, ord')
+      .select('team_no, name, topic, is_active, ord')
       .eq('is_active', true)
       .order('ord')
       .then(({ data }) => {
         if (!alive) return
         const opts = (data ?? [])
           .filter((t) => t.team_no !== participant.team_no)
-          .map((t) => ({ value: String(t.team_no), label: t.name }))
+          .map((t) => ({
+            value: String(t.team_no),
+            // 발표 주제를 등록해 둔 팀만 "N팀 - 주제" 로, 없으면 팀 이름 그대로.
+            label: t.topic ? `${t.team_no}팀 - ${t.topic}` : t.name,
+          }))
         setOptions(opts)
       })
     return () => {

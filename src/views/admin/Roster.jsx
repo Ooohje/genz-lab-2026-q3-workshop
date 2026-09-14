@@ -136,11 +136,17 @@ export default function Roster({ pin }) {
             teamActive={t.is_active}
             members={data.participants.filter((p) => p.team_no === t.team_no)}
             teams={data.teams}
+            topic={t.topic}
             onRename={() => {
               const n = prompt('팀 이름', t.name)
               if (n) call('admin_upsert_team', {
                 p_team_no: t.team_no, p_name: n, p_is_active: t.is_active, p_ord: t.ord,
               })
+            }}
+            onEditTopic={() => {
+              // 팀 발표 투표(#/poll/best-team) 옵션에 "N팀 - 주제" 로 나간다. 비우면 다시 팀 이름만 나간다.
+              const v = prompt('발표 주제 (비우면 삭제)', t.topic ?? '')
+              if (v !== null) call('admin_set_team_topic', { p_team_no: t.team_no, p_topic: v })
             }}
             onToggleTeam={() => call('admin_upsert_team', {
               p_team_no: t.team_no, p_name: t.name, p_is_active: !t.is_active, p_ord: t.ord,
@@ -163,8 +169,8 @@ export default function Roster({ pin }) {
 }
 
 function TeamCard({
-  title, subtitle, warn, teamActive = true, members, teams,
-  onRename, onToggleTeam, onDeleteTeam, onAddMember, onAssign, onToggle, onRenameMember, onChangeKnox, onReset, onDelete, busy,
+  title, subtitle, topic, warn, teamActive = true, members, teams,
+  onRename, onEditTopic, onToggleTeam, onDeleteTeam, onAddMember, onAssign, onToggle, onRenameMember, onChangeKnox, onReset, onDelete, busy,
 }) {
   // teamActive=false: 게임 1 시작·스크린·리더보드에서 이 팀이 통째로 빠진다
   // (admin_start_game1 / get_screen_g1 / get_leaderboard 가 where is_active).
@@ -183,6 +189,7 @@ function TeamCard({
             )}
           </span>
           {subtitle && <span className="num text-[11px] text-muted">{subtitle}</span>}
+          {topic && <span className="truncate text-[11px] font-semibold text-brand">📣 {topic}</span>}
         </div>
         <span className="num shrink-0 text-[11px] font-bold text-muted">{members.length}명</span>
       </div>
@@ -280,6 +287,11 @@ function TeamCard({
           {onRename && (
             <button onClick={onRename} className="text-[11px] font-bold text-brand hover:underline">
               이름 변경
+            </button>
+          )}
+          {onEditTopic && (
+            <button onClick={onEditTopic} className="text-[11px] font-bold text-brand hover:underline">
+              발표 주제
             </button>
           )}
           {onToggleTeam && (
