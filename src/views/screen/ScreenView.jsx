@@ -32,6 +32,7 @@ function bedFor(phase) {
  */
 export default function ScreenView() {
   const { gameState } = useGameState()
+  const bestTeamRank = usePollRank('best_team')
 
   // 리허설·사전점검용 미리보기: #/screen?phase=lobby 처럼 phase 를 강제한다.
   // DB 를 건드리지 않고 각 화면을 확인할 수 있다.
@@ -41,7 +42,11 @@ export default function ScreenView() {
   return (
     <>
       <SoundControl phase={phase} />
-      {phase === 'lobby' ? (
+      {bestTeamRank?.visible ? (
+        // 관리자가 대시보드에서 "스크린에 순위 공개"를 누른 동안은 현재 phase 와
+        // 무관하게 이 화면이 최우선으로 뜬다. 득표수는 안 온다(get_poll_rank 참고).
+        <PollRankBoard title="팀 발표 투표 결과" ranking={bestTeamRank.ranking} />
+      ) : phase === 'lobby' ? (
         <Entry />
       ) : phase === 'game1' || phase === 'game1_reveal' ? (
         <G1Board />
@@ -104,6 +109,44 @@ function SoundControl({ phase }) {
     >
       {label}
     </button>
+  )
+}
+
+/**
+ * 관리자가 대시보드에서 켠 동안만 순위를 받는다. 꺼져 있으면 서버가
+ * {visible:false} 만 주고 랭킹 자체를 안 보낸다 — 스크린도 득표수를 모른다.
+ */
+function usePollRank(pollId) {
+  const [rank, setRank] = useState(null)
+  useEffect(() => {
+    const pull = () =>
+      supabase.rpc('get_poll_rank', { p_poll_id: pollId }).then(({ data }) => setRank(data))
+    pull()
+    const id = setInterval(pull, 3000)
+    return () => clearInterval(id)
+  }, [pollId])
+  return rank
+}
+
+/** 투표 결과 — 순위만. 득표수는 절대 표시하지 않는다(get_poll_rank 가 안 준다). */
+function PollRankBoard({ title, ranking }) {
+  return (
+    <div className="flex h-full flex-col gap-[40px] bg-brand p-[64px_80px]">
+      <h1 className="text-[72px] font-bold tracking-[-0.03em] text-white">{title}</h1>
+      <div className="flex flex-1 flex-col justify-center gap-[18px]">
+        {(ranking ?? []).map((t, i) => (
+          <div
+            key={t.team_no}
+            className="flex items-center gap-[28px] rounded-[24px] bg-white/10 px-[36px] py-[22px]"
+          >
+            <span className="num flex h-[64px] w-[64px] shrink-0 items-center justify-center rounded-full bg-brand-lime text-[32px] font-bold text-brand-deep">
+              {i + 1}
+            </span>
+            <span className="text-[40px] font-bold text-white">{t.name}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
 

@@ -1,11 +1,31 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 
+/**
+ * 이름·Knox ID가 들어간 CSV를 내려받는다. 엑셀에서 한글이 깨지지 않도록
+ * UTF-8 BOM을 붙인다. 개인정보라 관리자 PIN 뒤(이 파일)에서만 만든다.
+ */
+function downloadCsv(filename, header, rows) {
+  const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`
+  const lines = [header.map(esc).join(','), ...rows.map((r) => r.map(esc).join(','))]
+  const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
+}
+
 /** C2 — 대시보드. 진행 컨트롤 + 지표 + 팀별 진행률 + 배정 대기자. */
 export default function Dashboard({ pin, gameState }) {
   const [d, setD] = useState(null)
   const [questions, setQuestions] = useState([])
   const [dinner, setDinner] = useState(null)
+  const [bestTeam, setBestTeam] = useState(null)
+  const [trenders, setTrenders] = useState(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const [notice, setNotice] = useState('')
@@ -13,14 +33,18 @@ export default function Dashboard({ pin, gameState }) {
   const writeOn = gameState?.write_started_at != null
 
   const pull = useCallback(async () => {
-    const [dash, qs, din] = await Promise.all([
+    const [dash, qs, din, bt, tr] = await Promise.all([
       supabase.rpc('admin_dashboard', { p_pin: pin }),
       supabase.rpc('admin_list_questions', { p_pin: pin }),
       supabase.rpc('admin_dinner_tally', { p_pin: pin }),
+      supabase.rpc('admin_poll_tally', { p_pin: pin, p_poll_id: 'best_team' }),
+      supabase.rpc('admin_poll_tally', { p_pin: pin, p_poll_id: 'trenders_2026h2' }),
     ])
     if (dash.data) setD(dash.data)
     if (qs.data) setQuestions(qs.data)
     if (din.data) setDinner(din.data)
+    if (bt.data) setBestTeam(bt.data)
+    if (tr.data) setTrenders(tr.data)
   }, [pin])
 
   useEffect(() => {
@@ -203,6 +227,72 @@ export default function Dashboard({ pin, gameState }) {
           )}
         </Panel>
 
+        <Panel title="팀 발표 투표">
+          {bestTeam ? (
+            <>
+              <p className="text-[11px] text-muted">
+                활성 참여자 {bestTeam.total_active ?? 0}명 중 {bestTeam.voted ?? 0}명 투표 ·
+                미투표 {bestTeam.not_yet ?? 0}명
+              </p>
+              <div className="flex flex-col gap-[4px]">
+                {(bestTeam.counts ?? []).map((c, i) => (
+                  <div key={c.choice} className="flex items-center gap-[8px] text-[12px]">
+                    <span className="num w-[18px] shrink-0 text-muted">{i + 1}</span>
+                    <span className="flex-1 truncate font-semibold text-ink">{c.label}</span>
+                    <span className="num font-bold text-ink">{c.n}표</span>
+                  </div>
+                ))}
+              </div>
+              <Btn
+                tone={bestTeam.reveal_visible ? 'fake' : 'brand'}
+                onClick={() =>
+                  call('admin_set_poll_reveal', {
+                    p_poll_id: 'best_team',
+                    p_visible: !bestTeam.reveal_visible,
+                  })
+                }
+                disabled={busy}
+              >
+                {bestTeam.reveal_visible ? '스크린에서 순위 내리기' : '스크린에 순위 공개'}
+              </Btn>
+              <p className="text-[11px] leading-[1.5] text-muted">
+                스크린에는 득표수 없이 순위만 나간다. 득표수는 여기서만 본다.
+              </p>
+            </>
+          ) : (
+            <p className="text-[12px] text-muted">불러오는 중…</p>
+          )}
+        </Panel>
+
+        <Panel title="트렌더즈 현장 접수">
+          {trenders ? (
+            <>
+              <div className="grid grid-cols-3 gap-[8px]">
+                <MiniStat label="참여" value={trenders.counts?.find((c) => c.choice === 'yes')?.n ?? 0} />
+                <MiniStat label="미참여" value={trenders.counts?.find((c) => c.choice === 'no')?.n ?? 0} />
+                <MiniStat label="미응답" value={trenders.not_yet ?? 0} warn={(trenders.not_yet ?? 0) > 0} />
+              </div>
+              <p className="text-[11px] text-muted">활성 참여자 {trenders.total_active ?? 0}명 기준</p>
+              <Btn
+                tone="brand"
+                onClick={() => {
+                  const yes = (trenders.voters ?? []).filter((v) => v.choice === 'yes')
+                  downloadCsv(
+                    '트렌더즈_참여자명단.csv',
+                    ['이름', 'Knox ID'],
+                    yes.map((v) => [v.name, v.knox_id]),
+                  )
+                }}
+                disabled={!trenders.voters?.some((v) => v.choice === 'yes')}
+              >
+                참여자 명단 CSV 다운로드
+              </Btn>
+            </>
+          ) : (
+            <p className="text-[12px] text-muted">불러오는 중…</p>
+          )}
+        </Panel>
+
         <Panel title="공지 배너">
           <textarea
             value={notice}
@@ -235,6 +325,20 @@ export default function Dashboard({ pin, gameState }) {
               && call('admin_reset_dinner')}
           >
             석식 응답 초기화
+          </Btn>
+          <Btn
+            tone="ghost"
+            onClick={() => confirm('팀 발표 투표를 모두 지우고 스크린 공개도 내립니다.')
+              && call('admin_reset_poll', { p_poll_id: 'best_team' })}
+          >
+            발표 투표 초기화
+          </Btn>
+          <Btn
+            tone="ghost"
+            onClick={() => confirm('트렌더즈 현장 접수 응답을 모두 지웁니다. 명단은 남습니다.')
+              && call('admin_reset_poll', { p_poll_id: 'trenders_2026h2' })}
+          >
+            트렌더즈 접수 초기화
           </Btn>
           <Btn
             tone="fake"

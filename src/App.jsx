@@ -3,6 +3,7 @@ import ParticipantApp from './views/participant/ParticipantApp'
 import ScreenView from './views/screen/ScreenView'
 import AdminView from './views/admin/AdminView'
 import DinnerView from './views/dinner/DinnerView'
+import PollView from './views/poll/PollView'
 
 /**
  * 해시 라우터.
@@ -25,5 +26,6 @@ export default function App() {
   if (route.startsWith('/screen')) return <ScreenView />
   if (route.startsWith('/admin')) return <AdminView />
   if (route.startsWith('/dinner')) return <DinnerView />
+  if (route.startsWith('/poll/')) return <PollView slug={route.slice('/poll/'.length).split('?')[0]} />
   return <ParticipantApp />
 }
