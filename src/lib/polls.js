@@ -17,7 +17,7 @@ export const POLLS = {
     subtitle: '어느 팀 발표가 가장 좋았나요? 우리 팀은 고를 수 없어요. 마음이 바뀌면 다시 눌러 변경할 수 있어요.',
     kind: 'team',
   },
-  trenders: {
+  trenderZ: {
     id: 'trenders_2026h2',
     title: '2026 하반기 트렌더즈 현장 접수',
     subtitle: '현장 참여 여부를 알려주세요. 마음이 바뀌면 다시 눌러 변경할 수 있어요.',
