@@ -202,22 +202,29 @@ begin
     return jsonb_build_object('visible', false, 'server_now', now());
   end if;
 
+  -- 스크린엔 1등·2등만 내보낸다(게임 2 최종 시상과 같은 포디움 스타일로 그린다).
+  -- limit 을 여기(서버)에서 걸어서, 누가 네트워크 탭을 열어봐도 3등 이하는
+  -- 아예 응답에 없다 — 프론트에서 slice 만 하는 것보다 안전하다.
   return jsonb_build_object(
     'visible', true,
     'ranking', case
       when p_poll_id = 'best_team' then
         coalesce((
-          select jsonb_agg(jsonb_build_object('team_no', t.team_no, 'name', t.name)
-                            order by coalesce(x.n, 0) desc, t.ord)
-            from teams t
-            left join (
-              select r.choice, count(*) as n
-                from poll_votes r
-                join participants p on p.knox_id = r.knox_id and p.is_active
-               where r.poll_id = p_poll_id
-               group by r.choice
-            ) x on x.choice = t.team_no::text
-           where t.is_active
+          select jsonb_agg(jsonb_build_object('team_no', z.team_no, 'name', z.name) order by z.n desc, z.ord)
+            from (
+              select t.team_no, t.name, t.ord, coalesce(x.n, 0) as n
+                from teams t
+                left join (
+                  select r.choice, count(*) as n
+                    from poll_votes r
+                    join participants p on p.knox_id = r.knox_id and p.is_active
+                   where r.poll_id = p_poll_id
+                   group by r.choice
+                ) x on x.choice = t.team_no::text
+               where t.is_active
+               order by coalesce(x.n, 0) desc, t.ord
+               limit 2
+            ) z
         ), '[]'::jsonb)
       else '[]'::jsonb
     end,

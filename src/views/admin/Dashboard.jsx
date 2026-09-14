@@ -19,6 +19,24 @@ function downloadCsv(filename, header, rows) {
   URL.revokeObjectURL(url)
 }
 
+/** 현재 origin + 해시 라우트로 투표 페이지 링크를 만든다. QR이 안 읽힐 때 대신 쓴다. */
+function pollUrl(hashPath) {
+  return `${window.location.href.replace(/#.*$/, '')}#${hashPath}`
+}
+
+function OpenLinkBtn({ hashPath }) {
+  return (
+    <a
+      href={pollUrl(hashPath)}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-block rounded-[12px] bg-surface px-[14px] py-[10px] text-[13px] font-bold text-ink hover:bg-line"
+    >
+      투표 사이트 열기 ↗
+    </a>
+  )
+}
+
 /** C2 — 대시보드. 진행 컨트롤 + 지표 + 팀별 진행률 + 배정 대기자. */
 export default function Dashboard({ pin, gameState }) {
   const [d, setD] = useState(null)
@@ -201,6 +219,7 @@ export default function Dashboard({ pin, gameState }) {
         </Panel>
 
         <Panel title="석식 참석 집계">
+          <OpenLinkBtn hashPath="/dinner" />
           {dinner ? (
             <>
               <div className="grid grid-cols-3 gap-[8px]">
@@ -228,6 +247,7 @@ export default function Dashboard({ pin, gameState }) {
         </Panel>
 
         <Panel title="팀 발표 투표">
+          <OpenLinkBtn hashPath="/poll/best-team" />
           {bestTeam ? (
             <>
               <p className="text-[11px] text-muted">
@@ -265,6 +285,7 @@ export default function Dashboard({ pin, gameState }) {
         </Panel>
 
         <Panel title="트렌더즈 현장 접수">
+          <OpenLinkBtn hashPath="/poll/trenderZ" />
           {trenders ? (
             <>
               <div className="grid grid-cols-3 gap-[8px]">

@@ -128,23 +128,38 @@ function usePollRank(pollId) {
   return rank
 }
 
-/** 투표 결과 — 순위만. 득표수는 절대 표시하지 않는다(get_poll_rank 가 안 준다). */
+/**
+ * 투표 결과 — 1등 · 2등만, 게임 2 최종 시상(Leaderboard)과 같은 포디움 스타일.
+ * 득표수는 절대 표시하지 않는다 — get_poll_rank 자체가 상위 2개만, 숫자 없이 준다.
+ */
 function PollRankBoard({ title, ranking }) {
+  const top = (ranking ?? []).slice(0, 2)
+  const podium = [top[1], top[0]] // 2등 · 1등 순으로 세운다
+  const heights = [400, 560]
+  const ranks = [2, 1]
+
   return (
     <div className="flex h-full flex-col gap-[40px] bg-brand p-[64px_80px]">
       <h1 className="text-[72px] font-bold tracking-[-0.03em] text-white">{title}</h1>
-      <div className="flex flex-1 flex-col justify-center gap-[18px]">
-        {(ranking ?? []).map((t, i) => (
-          <div
-            key={t.team_no}
-            className="flex items-center gap-[28px] rounded-[24px] bg-white/10 px-[36px] py-[22px]"
-          >
-            <span className="num flex h-[64px] w-[64px] shrink-0 items-center justify-center rounded-full bg-brand-lime text-[32px] font-bold text-brand-deep">
-              {i + 1}
-            </span>
-            <span className="text-[40px] font-bold text-white">{t.name}</span>
-          </div>
-        ))}
+      <div className="flex flex-1 items-end justify-center gap-[56px]">
+        {podium.map((t, i) => {
+          const first = ranks[i] === 1
+          return (
+            <div key={ranks[i]} className="flex w-[320px] flex-col items-center gap-[20px]">
+              <span className="text-[40px] font-bold text-white">{t?.name ?? '—'}</span>
+              <div
+                className={`flex w-full items-start justify-center rounded-t-[28px] pt-[28px] ${
+                  first ? 'animate-bob bg-brand-lime' : 'bg-white/15'
+                }`}
+                style={{ height: heights[i] }}
+              >
+                <span className={`num text-[88px] font-bold ${first ? 'text-brand-deep' : 'text-white'}`}>
+                  {ranks[i]}
+                </span>
+              </div>
+            </div>
+          )
+        })}
       </div>
     </div>
   )

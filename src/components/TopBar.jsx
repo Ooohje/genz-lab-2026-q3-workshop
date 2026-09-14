@@ -6,12 +6,18 @@ import { clearSession } from '../lib/session'
  * 잘못 매칭된 사람이 스스로 알아채고 진행자에게 문의할 수 있다.
  *
  * 오른쪽 Knox ID 는 로그아웃 버튼이다. 남의 폰으로 잘못 들어왔거나 다른 ID 로
- * 다시 들어와야 할 때 쓴다. 세션은 localStorage 뿐이라 여기서 지우고 새로고침하면 끝.
+ * 다시 들어와야 할 때 쓴다. 세션은 localStorage 뿐이라 여기서 지우면 끝.
+ *
+ * 로그아웃 뒤 그냥 로그인 화면으로 돌아가면 밋밋해서, window.close() 를 먼저
+ * 시도한다 — 스크립트가 직접 연 탭이 아니면 대부분의 브라우저가 조용히
+ * 무시한다(보안 정책이라 웹에서 우회할 방법이 없다). 그래서 실패할 걸 가정하고
+ * 곧바로 인사 화면(#/bye)으로 보낸다. 해시만 바꾸므로 새로고침 없이 전환된다.
  */
 function logout() {
   if (!confirm('로그아웃할까요? 다시 들어오려면 Knox ID 를 입력해야 합니다.')) return
   clearSession()
-  window.location.reload()
+  window.close()
+  window.location.hash = '/bye'
 }
 
 export default function TopBar({ participant, teamName, right, dark = false }) {
