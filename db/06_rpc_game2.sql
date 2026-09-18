@@ -191,7 +191,15 @@ create or replace function get_leaderboard()
 returns jsonb
 language sql security definer set search_path = public
 as $fn$
-  select coalesce(jsonb_agg(x order by x->>'avg' desc), '[]'::jsonb) from (
+  -- ::numeric 캐스팅 필수. x->>'avg' 는 텍스트라 캐스팅 없이 정렬하면 사전순이 된다 —
+  -- "997.0" > "904.2" > "1018.0" 이 돼서 1000점 넘은 팀이 통째로 꼴찌로 밀린다.
+  -- 2026-09-17 행사에서 실제로 9팀(평균 1018)이 10등으로 찍혔다. 캐스팅 빼지 말 것.
+  -- 동점이면 총점 높은 팀, 그래도 같으면 팀 번호 순으로 고정한다(순서가 매번 흔들리지 않게).
+  select coalesce(jsonb_agg(
+           x order by (x->>'avg')::numeric desc,
+                      (x->>'total')::numeric desc,
+                      (x->>'team_no')::int
+         ), '[]'::jsonb) from (
     select jsonb_build_object(
       'team_no',     t.team_no,
       'name',        t.name,
